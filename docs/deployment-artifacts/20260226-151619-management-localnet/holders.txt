@@ -1,0 +1,10 @@
+→ Fetching token accounts (this may take a moment)...
+
+Token Holders
+  ACCOUNT                                       OWNER                                         BALANCE           
+────────────────────────────────────────────────────────────
+  3J19V7fwKafwJGgqrAuTpkQwd2HBHYzyrnkzy7L6YyZn  2GNCTjfufAdhcdQPcgM5hm96uH3dh2UBohy8zF2TGA8Z  1                 
+  GZCj3a4BBUrUC8fQz7Zsy4s5FbffPfceSBZ5DDXicpD1  4LRkTEkNp6nGAKPwo4C96WpuM1eLkrYHB3zjbrUYY9dY  1000000           
+────────────────────────────────────────────────────────────
+→ Showing holders with balance >= 1 (2 accounts)
+✔ Holders listed successfully

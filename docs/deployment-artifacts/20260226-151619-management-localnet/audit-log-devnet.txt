@@ -1,0 +1,45 @@
+warning: use of deprecated module `solana_sdk::system_program`: Use `solana_system_interface::program` instead
+ --> cli/src/commands/blacklist.rs:7:5
+  |
+7 |     system_program,
+  |     ^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(deprecated)]` on by default
+
+warning: function `error` is never used
+ --> cli/src/output.rs:9:8
+  |
+9 | pub fn error(msg: &str) {
+  |        ^^^^^
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+
+Audit Log
+────────────────────────────────────────────────────────────
+  SLOT          SIGNATURE                                                                                 STATUS    
+────────────────────────────────────────────────────────────
+  444734536     43YKw9mvB99u5YXTG38xVEiy8KCeVtoMjXB2NMTGMZRA2KXuW7uDtpZm3MkRSMFZ8cNgUcBGK8qT7qiUa1jUzhJp  Success   
+  444734491     579SkXKuKetBhhFRiYx67rx3SkdNK2ZQCYqjxVRwTetiC6dWkR6iK2v94fcMKNXFgCbeBHjkoqULwmCUZdj5zrfW  Success   
+  444734449     3Ka81Qxbcu1hCZ5JzEb9khebT1HiiuYrWm76RCeUfgr8LceeUrnyHbB3m7c5tQYL1J4QvBzwgKdnPunSFCbMv6N9  Success   
+  444734410     434QLp27zrmCck71dmFCb5aS67aasT3rtPEqmVNqCYwq6oFzDdGAUVAuCS9bjDyMUS9k8BoCUp1Pv9UKyLMKBvMT  Success   
+  444734370     29o3HBuSyxsHmnTd4UrATuQrjAZuzwG8VSQRiSNQ2TZCzLqSrHwCZXsXWPJpsFi9TgZpmyfrtkg7ibxJGJeL1M1f  Success   
+  444734326     2gZHNrUPUx8GJQZtQKytDYA3F2zHLPNrpL2mdKHRT8W7jpdPLrP1YFkqcPhDnV4Febm5WiqCJwdyfqaR3LKCY4PL  Success   
+  444734248     5QsTAir2tzct1xbmFMod7CAzJzueEyFTKgfqNUqcptB84VUq1qMhjNBXP3eEabY6dbh8MiEHjHebu1d971HZDFrL  Success   
+────────────────────────────────────────────────────────────
+→ Displayed 7 of 7 total transactions
+→ Use --action <type> to filter. Available types:
+    initialize: Initialized
+    mint: TokensMinted
+    burn: TokensBurned
+    freeze: AccountFrozen
+    thaw: AccountThawed
+    pause: Paused
+    unpause: Unpaused
+    blacklist_add: BlacklistAdded
+    blacklist_remove: BlacklistRemoved
+    seize: TokensSeized
+    minter_add: MinterAdded
+    minter_remove: MinterRemoved
+    role_update: RoleUpdated
+✔ Audit log retrieved

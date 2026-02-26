@@ -15,7 +15,7 @@ Status legend:
 | BR-04 | SSS-2 instructions (blacklist add/remove, seize) + graceful gating when disabled | Done | `programs/sss-token/src/instructions/add_to_blacklist.rs`, `programs/sss-token/src/instructions/remove_from_blacklist.rs`, `programs/sss-token/src/instructions/seize.rs` |
 | BR-05 | Separate transfer hook blacklist enforcement program | Done | `programs/sss-transfer-hook/src/lib.rs`, `programs/sss-transfer-hook/src/instructions/transfer_hook.rs` |
 | BR-06 | Role separation incl. minter quotas | Done | `programs/sss-token/src/state.rs`, `programs/sss-token/src/instructions/update_minter.rs`, `programs/sss-token/src/instructions/update_roles.rs` |
-| BR-07 | Admin CLI for presets + operations + compliance + management commands | Partial | `cli/src/main.rs`, `cli/src/commands/*.rs`, `scripts/localnet-evidence.sh`, `docs/deployment-artifacts/20260226-115508-localnet/transactions.txt` (preset + compliance lifecycle verified on localnet; remaining management commands still need dedicated coverage evidence) |
+| BR-07 | Admin CLI for presets + operations + compliance + management commands | Done | `cli/src/main.rs`, `cli/src/commands/*.rs`, `docs/deployment-artifacts/20260226-141644-localnet/transactions.txt`, `docs/deployment-artifacts/20260226-151619-management-localnet/summary.txt`, `docs/deployment-artifacts/20260226-151619-management-localnet/audit-log-devnet.txt` (preset/compliance + management command evidence captured) |
 | BR-08 | TypeScript SDK usage for preset/custom init + operations + compliance module | Partial | `sdk/core/src/stablecoin.ts`, `sdk/core/src/compliance.ts` (method wiring aligned; runtime verification pending) |
 | BR-09 | Backend services (mint/burn, indexer, compliance, webhook) | Partial | `services/mint-burn`, `services/indexer`, `services/compliance`, `services/webhook` (builds, but full integration proof pending) |
 | BR-10 | Dockerized backend + compose | Done | `services/Dockerfile`, `services/docker-compose.yml` |
@@ -30,6 +30,5 @@ Status legend:
 
 ## Current Priority Gaps (Hardening)
 
-1. Expand CLI management command evidence coverage (`BR-07`) for `minters list/remove`, `holders`, `audit-log`.
-2. Add stronger runtime evidence for SDK integration (`BR-08`) and backend service integration (`BR-09`).
-3. Extend Trident fuzz scenarios from scaffold baseline to protocol-specific invariants beyond current seed run (`BR-13` hardening).
+1. Add stronger runtime evidence for SDK integration (`BR-08`) and backend service integration (`BR-09`).
+2. Extend Trident fuzz scenarios from scaffold baseline to protocol-specific invariants beyond current seed run (`BR-13` hardening).
