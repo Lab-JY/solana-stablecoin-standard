@@ -1,0 +1,27 @@
+[package]
+name = "sss-indexer"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "sss-indexer"
+path = "src/main.rs"
+
+[dependencies]
+sss-shared = { path = "../shared" }
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+dotenv = "0.15"
+solana-sdk = "2.1"
+solana-client = "2.1"
+solana-transaction-status = "2.1"
+sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio", "sqlite"] }
+tokio-tungstenite = { version = "0.24", features = ["native-tls"] }
+futures-util = "0.3"
+reqwest = { version = "0.12", features = ["json"] }
+base64 = "0.22"
+bs58 = "0.5"
+anyhow = "1"

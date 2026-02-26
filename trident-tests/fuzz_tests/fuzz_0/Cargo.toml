@@ -1,0 +1,10 @@
+[package]
+name = "sss-fuzz-0"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "test_fuzz"
+path = "test_fuzz.rs"
+
+[workspace]

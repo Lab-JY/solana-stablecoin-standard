@@ -1,0 +1,24 @@
+{
+  "name": "solana-stablecoin-standard",
+  "private": true,
+  "workspaces": ["sdk/core", "app"],
+  "scripts": {
+    "build:sdk": "yarn workspace @stbr/sss-token build",
+    "test:sdk": "yarn workspace @stbr/sss-token test",
+    "test:integration": "anchor test",
+    "lint": "prettier --check 'sdk/**/*.ts' 'tests/**/*.ts'"
+  },
+  "devDependencies": {
+    "@coral-xyz/anchor": "^0.31.0",
+    "@solana/web3.js": "^1.95.0",
+    "@solana/spl-token": "^0.4.0",
+    "chai": "^4.3.10",
+    "mocha": "^10.2.0",
+    "ts-mocha": "^10.0.0",
+    "typescript": "^5.3.0",
+    "prettier": "^3.1.0",
+    "@types/chai": "^4.3.11",
+    "@types/mocha": "^10.0.6",
+    "ts-node": "^10.9.2"
+  }
+}
