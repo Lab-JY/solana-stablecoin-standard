@@ -35,7 +35,8 @@ pub struct TransferHook<'info> {
     )]
     pub extra_account_meta_list: UncheckedAccount<'info>,
 
-    /// The sss-token program (needed by ExtraAccountMetas PDA resolution)
+    /// CHECK: Program ID is validated with address constraint.
+    /// Needed by ExtraAccountMetas PDA resolution and delegate PDA derivation.
     #[account(address = SSS_TOKEN_PROGRAM_ID)]
     pub sss_token_program: UncheckedAccount<'info>,
 

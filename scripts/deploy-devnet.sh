@@ -16,17 +16,20 @@ fi
 
 ARTIFACT_DIR="docs/deployment-artifacts/$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$ARTIFACT_DIR"
+KEYPAIR_PATH="${KEYPAIR_PATH:-$HOME/.config/solana/id.json}"
 
 echo "==> Building programs"
 anchor build
 
 echo "==> Deploying programs to devnet"
-anchor deploy --provider.cluster devnet | tee "$ARTIFACT_DIR/deploy.log"
+anchor deploy --provider.cluster devnet --provider.wallet "$KEYPAIR_PATH" \
+  | tee "$ARTIFACT_DIR/deploy.log"
 
 echo "==> Recording program IDs"
 {
   echo "cluster: devnet"
   echo "deployed_at_utc: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  echo "operator: $(solana-keygen pubkey "$KEYPAIR_PATH")"
   echo "sss_token: $(solana address -k target/deploy/sss_token-keypair.json)"
   echo "sss_transfer_hook: $(solana address -k target/deploy/sss_transfer_hook-keypair.json)"
 } | tee "$ARTIFACT_DIR/program-ids.txt"

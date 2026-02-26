@@ -1,0 +1,3 @@
+operator=8bk6EZDQudBjSoFh53FdPiF9qG79n1WggP8hwgyXmEvc
+cluster=devnet
+rpc_url=https://api.devnet.solana.com
