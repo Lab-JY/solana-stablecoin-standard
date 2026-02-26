@@ -237,6 +237,7 @@ export class SolanaStablecoin {
 
   /**
    * Freezes a token account. Caller must be authority or pauser.
+   */
   async freezeAccount(
     address: PublicKey,
     authority: Keypair
