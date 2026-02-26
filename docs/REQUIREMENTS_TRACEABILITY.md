@@ -16,7 +16,7 @@ Status legend:
 | BR-05 | Separate transfer hook blacklist enforcement program | Done | `programs/sss-transfer-hook/src/lib.rs`, `programs/sss-transfer-hook/src/instructions/transfer_hook.rs` |
 | BR-06 | Role separation incl. minter quotas | Done | `programs/sss-token/src/state.rs`, `programs/sss-token/src/instructions/update_minter.rs`, `programs/sss-token/src/instructions/update_roles.rs` |
 | BR-07 | Admin CLI for presets + operations + compliance + management commands | Done | `cli/src/main.rs`, `cli/src/commands/*.rs`, `docs/deployment-artifacts/20260226-141644-localnet/transactions.txt`, `docs/deployment-artifacts/20260226-151619-management-localnet/summary.txt`, `docs/deployment-artifacts/20260226-151619-management-localnet/audit-log-devnet.txt` (preset/compliance + management command evidence captured) |
-| BR-08 | TypeScript SDK usage for preset/custom init + operations + compliance module | Partial | `sdk/core/src/stablecoin.ts`, `sdk/core/src/compliance.ts` (method wiring aligned; runtime verification pending) |
+| BR-08 | TypeScript SDK usage for preset/custom init + operations + compliance module | Done | `sdk/core/src/stablecoin.ts`, `scripts/sdk-evidence.sh`, `docs/deployment-artifacts/20260226-200009-sdk-localnet/sdk-runtime.json`, `docs/deployment-artifacts/20260226-200009-sdk-localnet/sdk-core-tests.txt` |
 | BR-09 | Backend services (mint/burn, indexer, compliance, webhook) | Partial | `services/mint-burn`, `services/indexer`, `services/compliance`, `services/webhook` (builds, but full integration proof pending) |
 | BR-10 | Dockerized backend + compose | Done | `services/Dockerfile`, `services/docker-compose.yml` |
 | BR-11 | Required docs set (README, ARCHITECTURE, SDK, OPERATIONS, SSS-1/2, COMPLIANCE, API) | Done | `README.md`, `docs/ARCHITECTURE.md`, `docs/SDK.md`, `docs/OPERATIONS.md`, `docs/SSS-1.md`, `docs/SSS-2.md`, `docs/COMPLIANCE.md`, `docs/API.md` |
@@ -30,5 +30,5 @@ Status legend:
 
 ## Current Priority Gaps (Hardening)
 
-1. Add stronger runtime evidence for SDK integration (`BR-08`) and backend service integration (`BR-09`).
+1. Add stronger runtime evidence for backend service integration (`BR-09`).
 2. Extend Trident fuzz scenarios from scaffold baseline to protocol-specific invariants beyond current seed run (`BR-13` hardening).

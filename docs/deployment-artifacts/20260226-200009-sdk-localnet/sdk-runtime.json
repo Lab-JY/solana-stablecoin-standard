@@ -1,0 +1,33 @@
+{
+  "cluster": "http://127.0.0.1:8899",
+  "programId": "AhZamuppxULmpM9QGXcZJ9ZR3fvQbDd4gPsxLtDoMQmE",
+  "transferHookProgramId": "Gf5xP5YMRdhb7jRGiDsZW2guwwRMi4RQt4b5r44VPhTU",
+  "authority": "FsLpwNsHs1KaBrb5V3MmPF6wAybQMH7AEWhLHYfFdsz9",
+  "sss1": {
+    "mint": "6A5vWVqY1NR6U8nj2oyNBUAfsSzek4TTxpTCHg1UJrda",
+    "initSignature": "3KRAAX9ggSczfYJkiuq5gtQ6d4Lyxw9aQkq3tgojqBiFTHH1hbiPCNYMaL76WrxY17qVzSCMNrfYwuFgbu2FF3Ea"
+  },
+  "custom": {
+    "mint": "G2ZPTpa4CWKqUt53hNZBBs8vg65tFvkzm5jki9sZScjF",
+    "initSignature": "C6StRVx6gjMj9CAuEA61Wke9scoM1nuvpTq7UsZn5rkAHL55KQRwTSN2DXVzvGUw1ner5knbmhWy7DdvcLvosLR",
+    "addMinterSignature": "2uwg3zGaM9JwjDdo6RQphyWdR2DLvCGh9BCK2Pkv16TXwwJotsNLHqiQjG46D23rFmvEQsVCKGJZFP3U7sL8HAeH",
+    "mintSignature": "3vgo8DmnpKsTMf8vUci7g6Ps225ZU7UzQS9p3CeL6zfoTtYhU4omqq3VBQDBJHuViEXgCSMX6NRCUDXKYwoCWCeX",
+    "totalSupply": "1000000"
+  },
+  "sss2": {
+    "mint": "7Dyb397vd3xJ89s7PJft8GcmYegdndJDuqmL1sUoyDkY",
+    "initSignature": "5Rd331zqCHs7UEVgE8CKTvXsK7qkXhRnmvvJue6mJH2sNHbHw9L1yjVC3KM2e4Mdi31eifUE9e3Q4NGda5Em7azh",
+    "addMinterSignature": "58SQx6NtWZKZwbvfwJAC6kioBWGnQkb5A8VsyeXSB3qHvdzVvcKGR5yV6XfQcHa38CQFNnedYfyZFTJpib9QbW22",
+    "mintSignature": "D8ycc7dHd1nSxdNfgTKHJBzwqjDxiF1jUizjkVkFfo9v7GrL2nLkkdcY2xnrz4QVWpe8jd7XSoAzUL9xA5z33Ca",
+    "totalSupply": "1000000",
+    "blacklistAddSignature": "24QigmnvKY9RF2ii5RMX6Dg1APQNZG8WY8zhPcZn8UDBxFgcQ1cZEh1oBFPg9d1P7Ma1tTuDYZbJUM6tKaZ6jY7u",
+    "blacklistRemoveSignature": "2xDDPrSAFUPQ8phYm5KxtL2cFEPxD7TvfovEGPNGcBSTq2bjKGeku4ZKhASayuBCUeC2jF93FCBqam2E49JszDPo",
+    "isBlacklistedAfterAdd": true,
+    "isBlacklistedAfterRemove": false
+  },
+  "sss1ComplianceFailure": "AnchorError thrown in programs/sss-token/src/instructions/add_to_blacklist.rs:42. Error Code: ComplianceNotEnabled. Error Number: 6006. Error Message: Compliance module is not enabled for this stablecoin.",
+  "loadCheck": {
+    "loadedMint": "G2ZPTpa4CWKqUt53hNZBBs8vg65tFvkzm5jki9sZScjF",
+    "matchesCustomMint": true
+  }
+}

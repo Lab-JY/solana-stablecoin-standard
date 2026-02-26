@@ -51,7 +51,7 @@ export class SolanaStablecoin {
     public readonly connection: Connection,
     public readonly programId: PublicKey,
     public readonly transferHookProgramId: PublicKey,
-    public readonly mint: PublicKey,
+    public readonly mintAddress: PublicKey,
     public readonly configAddress: PublicKey,
     public readonly configBump: number,
     public readonly roleConfigAddress: PublicKey,
@@ -73,7 +73,8 @@ export class SolanaStablecoin {
     programId: PublicKey = SSS_TOKEN_PROGRAM_ID,
     transferHookProgramId: PublicKey = SSS_TRANSFER_HOOK_PROGRAM_ID
   ): Promise<{ stablecoin: SolanaStablecoin; signature: TransactionSignature }> {
-    const program = new Program(idl, programId, provider);
+    const programIdl = { ...idl, address: programId.toBase58() } as Idl;
+    const program = new Program(programIdl, provider);
     const mint = mintKeypair.publicKey;
 
     const [configAddress, configBump] = deriveStablecoinConfig(programId, mint);
@@ -87,6 +88,7 @@ export class SolanaStablecoin {
       mint: mint,
       stablecoinConfig: configAddress,
       roleConfig: roleConfigAddress,
+      transferHookProgram: SystemProgram.programId,
       tokenProgram: TOKEN_2022_PROGRAM_ID,
       systemProgram: SystemProgram.programId,
     };
@@ -134,7 +136,8 @@ export class SolanaStablecoin {
     programId: PublicKey = SSS_TOKEN_PROGRAM_ID,
     transferHookProgramId: PublicKey = SSS_TRANSFER_HOOK_PROGRAM_ID
   ): Promise<SolanaStablecoin> {
-    const program = new Program(idl, programId, provider);
+    const programIdl = { ...idl, address: programId.toBase58() } as Idl;
+    const program = new Program(programIdl, provider);
 
     const [configAddress, configBump] = deriveStablecoinConfig(programId, mint);
     const [roleConfigAddress, roleConfigBump] = deriveRoleConfig(
@@ -191,7 +194,7 @@ export class SolanaStablecoin {
     minter: Keypair
   ): Promise<TransactionSignature> {
     const recipientAta = getAssociatedTokenAddressSync(
-      this.mint,
+      this.mintAddress,
       params.recipient,
       false,
       TOKEN_2022_PROGRAM_ID
@@ -203,7 +206,7 @@ export class SolanaStablecoin {
         minter: minter.publicKey,
         stablecoinConfig: this.configAddress,
         roleConfig: this.roleConfigAddress,
-        mint: this.mint,
+        mint: this.mintAddress,
         recipientTokenAccount: recipientAta,
         tokenProgram: TOKEN_2022_PROGRAM_ID,
       })
@@ -224,7 +227,7 @@ export class SolanaStablecoin {
         burner: burner.publicKey,
         stablecoinConfig: this.configAddress,
         roleConfig: this.roleConfigAddress,
-        mint: this.mint,
+        mint: this.mintAddress,
         burnerTokenAccount: params.tokenAccount,
         tokenProgram: TOKEN_2022_PROGRAM_ID,
       })
@@ -234,13 +237,12 @@ export class SolanaStablecoin {
 
   /**
    * Freezes a token account. Caller must be authority or pauser.
-   */
   async freezeAccount(
     address: PublicKey,
     authority: Keypair
   ): Promise<TransactionSignature> {
     const tokenAccount = getAssociatedTokenAddressSync(
-      this.mint,
+      this.mintAddress,
       address,
       false,
       TOKEN_2022_PROGRAM_ID
@@ -252,7 +254,7 @@ export class SolanaStablecoin {
         authority: authority.publicKey,
         stablecoinConfig: this.configAddress,
         roleConfig: this.roleConfigAddress,
-        mint: this.mint,
+        mint: this.mintAddress,
         tokenAccount: tokenAccount,
         tokenProgram: TOKEN_2022_PROGRAM_ID,
       })
@@ -268,7 +270,7 @@ export class SolanaStablecoin {
     authority: Keypair
   ): Promise<TransactionSignature> {
     const tokenAccount = getAssociatedTokenAddressSync(
-      this.mint,
+      this.mintAddress,
       address,
       false,
       TOKEN_2022_PROGRAM_ID
@@ -280,7 +282,7 @@ export class SolanaStablecoin {
         authority: authority.publicKey,
         stablecoinConfig: this.configAddress,
         roleConfig: this.roleConfigAddress,
-        mint: this.mint,
+        mint: this.mintAddress,
         tokenAccount: tokenAccount,
         tokenProgram: TOKEN_2022_PROGRAM_ID,
       })
@@ -480,7 +482,7 @@ export class SolanaStablecoin {
           {
             memcmp: {
               offset: 0,
-              bytes: this.mint.toBase58(),
+              bytes: this.mintAddress.toBase58(),
             },
           },
         ],
@@ -513,7 +515,7 @@ export class SolanaStablecoin {
         this.program,
         this.programId,
         this.transferHookProgramId,
-        this.mint,
+        this.mintAddress,
         this.configAddress,
         this.configBump,
         this.roleConfigAddress

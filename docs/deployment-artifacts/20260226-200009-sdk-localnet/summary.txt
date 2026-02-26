@@ -1,0 +1,11 @@
+SDK runtime evidence (localnet)
+
+Authority: FsLpwNsHs1KaBrb5V3MmPF6wAybQMH7AEWhLHYfFdsz9
+Token program: AhZamuppxULmpM9QGXcZJ9ZR3fvQbDd4gPsxLtDoMQmE
+Transfer-hook program: Gf5xP5YMRdhb7jRGiDsZW2guwwRMi4RQt4b5r44VPhTU
+
+Artifacts:
+- sdk-runtime.json: preset init (SSS-1, SSS-2), custom init, mint/supply ops, compliance add/remove runtime, graceful failure on SSS-1 compliance op, load() check
+- sdk-core-tests.txt: unit tests for preset/PDA helpers
+- deploy-transfer-hook.txt / deploy-sss-token.txt: local deployments
+- validator.log: local validator logs

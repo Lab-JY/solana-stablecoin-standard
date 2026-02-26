@@ -80,7 +80,7 @@ const stablecoin = await SolanaStablecoin.create(connection, {
   authority: authority.publicKey,
 });
 
-console.log("Mint:", stablecoin.mint.toBase58());
+console.log("Mint:", stablecoin.mintAddress.toBase58());
 ```
 
 **Parameters:**
@@ -472,7 +472,7 @@ async function main() {
     decimals: 6,
     authority: authority.publicKey,
   });
-  console.log("Created:", coin.mint.toBase58());
+  console.log("Created:", coin.mintAddress.toBase58());
 
   // 2. Configure roles
   await coin.updateMinter(

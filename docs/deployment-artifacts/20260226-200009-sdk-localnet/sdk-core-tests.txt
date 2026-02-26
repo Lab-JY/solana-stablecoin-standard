@@ -1,0 +1,51 @@
+
+> @stbr/sss-token@0.1.0 test
+> mocha -r ts-node/register tests/**/*.test.ts --timeout 10000
+
+(node:56996) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/dongowu/code/project/project_sonlana/solana-stablecoin-standard/sdk/core/tests/pda.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/dongowu/code/project/project_sonlana/solana-stablecoin-standard/sdk/core/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+  PDA Derivation
+    deriveStablecoinConfig
+      ✔ should derive a valid PDA with correct seeds
+      ✔ should derive the same PDA for the same inputs
+      ✔ should derive different PDAs for different mints
+      ✔ should derive different PDAs for different program IDs
+      ✔ should match manual PDA derivation
+    deriveRoleConfig
+      ✔ should derive a valid PDA with correct seeds
+      ✔ should be deterministic
+      ✔ should match manual PDA derivation
+    deriveBlacklistEntry
+      ✔ should derive a valid PDA with correct seeds
+      ✔ should be deterministic
+      ✔ should produce different PDAs for different addresses
+      ✔ should produce different PDAs for different mints
+      ✔ should match manual PDA derivation
+
+  Presets
+    Presets enum
+      ✔ should have SSS_1 preset
+      ✔ should have SSS_2 preset
+    getPresetConfig
+      ✔ should throw for unknown presets
+      ✔ SSS-2 should differ from SSS-1 in compliance features
+      SSS-1 preset
+        ✔ should return 6 decimals
+        ✔ should have permanent delegate disabled
+        ✔ should have transfer hook disabled
+        ✔ should have default account frozen disabled
+        ✔ should include default name and symbol
+      SSS-2 preset
+        ✔ should return 6 decimals
+        ✔ should have permanent delegate enabled
+        ✔ should have transfer hook enabled
+        ✔ should have default account frozen disabled by default
+        ✔ should include default name and symbol
+
+
+  27 passing (81ms)
+

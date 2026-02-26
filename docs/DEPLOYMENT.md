@@ -15,6 +15,16 @@ This file tracks reproducible deployment evidence required by the Superteam Stab
 - Operator: `FFRaxvpnoN1eXvQLgX92qRfur39FwAzjWTymiQh63boV`
 - Treasury: `2NJELMMKnVdqdyRqt8AjFBa4sprUfxDwcYjGbSYFCXrf`
 
+## Localnet SDK Runtime Evidence (BR-08)
+
+- Verification date (UTC): `2026-02-26`
+- Artifact directory: `docs/deployment-artifacts/20260226-200009-sdk-localnet`
+- Scope: preset init (`SSS-1`, `SSS-2`), custom init, SDK mint/supply operations, compliance add/remove, `SSS-1` graceful compliance failure, `load()` path
+- Key outputs:
+  - Runtime evidence JSON: `docs/deployment-artifacts/20260226-200009-sdk-localnet/sdk-runtime.json`
+  - SDK unit tests: `docs/deployment-artifacts/20260226-200009-sdk-localnet/sdk-core-tests.txt`
+  - Run summary: `docs/deployment-artifacts/20260226-200009-sdk-localnet/summary.txt`
+
 ## Localnet Program IDs
 
 - `sss_token`: `AhZamuppxULmpM9QGXcZJ9ZR3fvQbDd4gPsxLtDoMQmE`
@@ -89,4 +99,7 @@ KEYPAIR_PATH=scripts/devnet-keypair.json TREASURY_ADDRESS=BeXg8VcM2MLoPzgEausyH9
 
 # Localnet evidence must run without proxy (script unsets proxy env internally)
 ./scripts/localnet-evidence.sh
+
+# SDK runtime evidence on localnet (script unsets proxy env internally)
+./scripts/sdk-evidence.sh
 ```
