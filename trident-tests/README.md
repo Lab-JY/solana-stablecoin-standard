@@ -22,13 +22,14 @@ cargo run --manifest-path trident-tests/fuzz_tests/fuzz_0/Cargo.toml
 
 This validates core invariants locally with deterministic pseudo-random cases.
 
-## Trident execution (when CLI is available)
+## Trident execution
 
 ```bash
-trident fuzz run-hfuzz fuzz_0
+trident init -s -p sss_token -t fuzz_0
+trident fuzz run fuzz_0
 ```
 
 ## Status
 
 - Invariant scaffold implemented and runnable offline.
-- Trident CLI execution remains pending in environments where `trident` is available.
+- Trident CLI baseline run executed locally (see `docs/deployment-artifacts/20260226-144112-trident/summary.txt`).

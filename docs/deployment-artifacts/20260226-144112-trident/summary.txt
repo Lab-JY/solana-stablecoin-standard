@@ -1,0 +1,5 @@
+command=(cd trident-tests && trident fuzz run fuzz_0)
+status=success
+trident_cli=0.13.0-rc.1
+master_seed=dd88273ea1c0c5f340206df8ff91019df3aa778ec7104be8259638d3a9d976b4
+note=full console log available locally during run; summary kept intentionally concise for repository evidence

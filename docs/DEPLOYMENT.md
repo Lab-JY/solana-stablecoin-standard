@@ -11,9 +11,9 @@ This file tracks reproducible deployment evidence required by the Superteam Stab
 ## Localnet Verified Evidence
 
 - Verification date (UTC): `2026-02-26`
-- Artifact directory: `docs/deployment-artifacts/20260226-115508-localnet`
-- Operator: `4PETrnUyUvHZaerhhno9kVFievhoWrsTsVKpYKBvQRVs`
-- Treasury: `48VGHpCW6ZPXxBicgXzX11BjxheZqcWtLradkVDVKEie`
+- Artifact directory: `docs/deployment-artifacts/20260226-141644-localnet`
+- Operator: `FFRaxvpnoN1eXvQLgX92qRfur39FwAzjWTymiQh63boV`
+- Treasury: `2NJELMMKnVdqdyRqt8AjFBa4sprUfxDwcYjGbSYFCXrf`
 
 ## Localnet Program IDs
 
@@ -24,16 +24,16 @@ This file tracks reproducible deployment evidence required by the Superteam Stab
 
 | Flow (localnet) | Signature |
 |---|---|
-| sss1_init_tx | `2oVoGTqcTPnjmrSbFZwYvqEuVwXQf566kchVkZENcYXczZBcnHxGbgV1CAMNu4kiAsk5bMJqfmr16zuCYAvsaNq7` |
-| sss1_add_minter_tx | `5xmZvax7EL2STZ3VHdGwHPE3rqmuHgFAPvynfyekA6XvdcqLEg4yoWnPRWLyL94VBuJ9Zqwb5RFuP9dMmGz8RkQz` |
-| sss1_mint_tx | `3S25PtYDf27gdpSmYgJNkgL1LcSojQS5wafeJn7r18WatLPkSJvGeLork6cM5bEh1YyvKz3a6Y4RSV7rmY1cE6sE` |
-| sss2_init_tx | `YkJ2qL4Vvhf8v3s32osr92MaUQhiFPXRS1tQTEngdThohLc3D1MU7mLc3pV3xyeAuHSmy9gyecHGcazoc7CanZX` |
-| sss2_add_minter_tx | `2f4zAsqn3PmE8v4tzTHGb4pna9cPk2hCSkCmYYrXSyw4gYyWHQrbAHe2AA4gRiuJ2ZwmDZcdZL1e6hZsbcsgSKAW` |
-| sss2_mint_operator_tx | `5xPA2ivQUYzw2jYymC1SN8HuhxxTLnJZP8AhkVn2bEaunSkFvRDkuzMmxzA4v7knNjWSDPCGVM7fKvdbYPq7f37K` |
-| sss2_mint_treasury_tx | `QHiydUAht9asB2ud9aww48d3fDXAMz6fPNkw7vupKoDR3moYsbEt4z48FSHeVpqYDH6nz1X5iGJzVyr9mKQJEgA` |
-| sss2_blacklist_add_tx | `23wtgHv8VZbNWh2F7WLFoTKWqSLZrgjprgFMLNfky3TS9hptiHRwcQwUkLSVrCfS9kKk392xyyRMPJZuTsfhfSX8` |
-| sss2_seize_tx | `3avSXEvaMFK9FcdFbThVP4YTgsBJQ2aNPstQ9Ku3VZCnx3w3yciY2r1H1zMHUgpoCA3MZc7G3HhTg5TLb7LGs7qo` |
-| sss2_blacklist_remove_tx | `5gR6f9HbBRxnRbzHP3yGxrJBpJ2vstuRKdnJUKnEJhBTPZyEuvqfchajbuPSFVt5akWjxBivXs1BCYtri5JdFyGo` |
+| sss1_init_tx | `5o5A2iHSLP4fpvM4w8nx7DM1JXPMGBXAUNZYGW8c6gkxqbU3ha5FsPpRRgigGHEcKfnBg9g1tXUSx3hYUdKGSpXG` |
+| sss1_add_minter_tx | `2Qaww6mH3RmBdLAwxrgBNbAoEH7vZ8GbYpSDAvW5QaCrz7QiTQpcTMGG8QEmuUKniKxJngTLAnbYkHA1R62Cz45x` |
+| sss1_mint_tx | `46oHZ69EoZtKz3Q1H73FMHjdZbHu3qH6SWhLbpyHQ25bdgcMs6ta4moV7ZvSmZ8YixXEF2dztpxuggnnc723rAsF` |
+| sss2_init_tx | `2e87WHRVrDHm7yzQK1XvjL9r1eTtRx5MM5iPwVL24KvxUKAPs1VnzZemRkbnaJF7De5JN2NRju6yBCDRqKrNm6qi` |
+| sss2_add_minter_tx | `r6fVUo1VK6m7dqpRuWH2fxbLGiDnJGyBamdXRS5Sf7vVnatbziiRCJ3cxBDG734mjiJeQxsPqYL6ppUoVFo17M8` |
+| sss2_mint_operator_tx | `qxnTHybpvLHXBjFfY7X5Fff3faq5TGyQJBKbw5r19uMNSmmF8MEePN32aSfxssucmP4QpudtgWdF5i7gYaE5azk` |
+| sss2_mint_treasury_tx | `3TnBYyMSyf2Z54xMFk9pVcK7vTZwaLs15p5vFVSDNQYGX1v6NvCUqAYLoqU327hPzNE4wyBfead9u6uDTwDm4zpZ` |
+| sss2_blacklist_add_tx | `5ZMo4HevJkPNti97KbfkRAJTr7PuvMkF6QPaybKkPo2sEnY6NvU2YnpwqpfuvRn4ZQRu2wCmWPMpEq7sEYud3spG` |
+| sss2_seize_tx | `2qbcCm75uuJ5faLnUc4SHE9V3hzeq83DVEVqJgpnNP2AMApuBf7dKD7Y8wzqkKnQkU1PneRVKEXNCp3vjyhzgPUg` |
+| sss2_blacklist_remove_tx | `2VVZWvwmMCiKH9aCG1bphnwr7nAFkaU6Y8iYKqxFfURYrZ2XdvhYP9m7jzsk39psx2DqFyrNHMT77m75AasiL4mV` |
 
 ## Devnet Verified Evidence
 
@@ -78,4 +78,15 @@ This file tracks reproducible deployment evidence required by the Superteam Stab
 ## Notes
 
 - Script artifacts are saved under `docs/deployment-artifacts/<timestamp>/`.
-- Localnet signatures above were copied from `docs/deployment-artifacts/20260226-115508-localnet/transactions.txt`.
+- Localnet signatures above were copied from `docs/deployment-artifacts/20260226-141644-localnet/transactions.txt`.
+
+## Reproduce Evidence
+
+```bash
+# Devnet deploy + smoke (network calls can use proxy)
+export https_proxy=http://127.0.0.1:7897 http_proxy=http://127.0.0.1:7897 all_proxy=socks5://127.0.0.1:7897
+KEYPAIR_PATH=scripts/devnet-keypair.json TREASURY_ADDRESS=BeXg8VcM2MLoPzgEausyH9993eWyBQVua94CuRm7afWo ./scripts/devnet-smoke.sh
+
+# Localnet evidence must run without proxy (script unsets proxy env internally)
+./scripts/localnet-evidence.sh
+```
