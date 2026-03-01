@@ -1,0 +1,154 @@
+name: services
+services:
+  compliance:
+    build:
+      context: /Users/dongowu/code/project/project_sonlana/solana-stablecoin-standard
+      dockerfile: services/Dockerfile
+      args:
+        SERVICE: compliance
+    container_name: sss-compliance
+    environment:
+      COMPLIANCE_PORT: "3000"
+      DATABASE_URL: sqlite:/app/data/sss.db
+      KEYPAIR_PATH: /app/keys/id.json
+      PROGRAM_ID: "11111111111111111111111111111111"
+      RPC_URL: https://api.devnet.solana.com
+      RUST_LOG: info
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - -f
+        - http://localhost:3000/health
+      timeout: 3s
+      interval: 30s
+      retries: 3
+      start_period: 10s
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 3000
+        published: "3002"
+        protocol: tcp
+    restart: unless-stopped
+    volumes:
+      - type: volume
+        source: sss-data
+        target: /app/data
+        volume: {}
+      - type: bind
+        source: /Users/dongowu/code/project/project_sonlana/solana-stablecoin-standard/services/keys
+        target: /app/keys
+        read_only: true
+        bind: {}
+  indexer:
+    build:
+      context: /Users/dongowu/code/project/project_sonlana/solana-stablecoin-standard
+      dockerfile: services/Dockerfile
+      args:
+        SERVICE: indexer
+    container_name: sss-indexer
+    depends_on:
+      webhook:
+        condition: service_healthy
+        required: true
+    environment:
+      DATABASE_URL: sqlite:/app/data/sss.db
+      PROGRAM_ID: "11111111111111111111111111111111"
+      RPC_URL: https://api.devnet.solana.com
+      RUST_LOG: info
+      WEBHOOK_SERVICE_URL: http://webhook:3000
+      WS_URL: wss://api.devnet.solana.com
+    networks:
+      default: null
+    restart: unless-stopped
+    volumes:
+      - type: volume
+        source: sss-data
+        target: /app/data
+        volume: {}
+  mint-burn:
+    build:
+      context: /Users/dongowu/code/project/project_sonlana/solana-stablecoin-standard
+      dockerfile: services/Dockerfile
+      args:
+        SERVICE: mint-burn
+    container_name: sss-mint-burn
+    environment:
+      DATABASE_URL: sqlite:/app/data/sss.db
+      KEYPAIR_PATH: /app/keys/id.json
+      MINT_BURN_PORT: "3000"
+      PROGRAM_ID: "11111111111111111111111111111111"
+      RPC_URL: https://api.devnet.solana.com
+      RUST_LOG: info
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - -f
+        - http://localhost:3000/health
+      timeout: 3s
+      interval: 30s
+      retries: 3
+      start_period: 10s
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 3000
+        published: "3001"
+        protocol: tcp
+    restart: unless-stopped
+    volumes:
+      - type: volume
+        source: sss-data
+        target: /app/data
+        volume: {}
+      - type: bind
+        source: /Users/dongowu/code/project/project_sonlana/solana-stablecoin-standard/services/keys
+        target: /app/keys
+        read_only: true
+        bind: {}
+  webhook:
+    build:
+      context: /Users/dongowu/code/project/project_sonlana/solana-stablecoin-standard
+      dockerfile: services/Dockerfile
+      args:
+        SERVICE: webhook
+    container_name: sss-webhook
+    environment:
+      DATABASE_URL: sqlite:/app/data/sss.db
+      RUST_LOG: info
+      WEBHOOK_POLL_INTERVAL_SECS: "5"
+      WEBHOOK_PORT: "3000"
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - -f
+        - http://localhost:3000/health
+      timeout: 3s
+      interval: 30s
+      retries: 3
+      start_period: 10s
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 3000
+        published: "3004"
+        protocol: tcp
+    restart: unless-stopped
+    volumes:
+      - type: volume
+        source: sss-data
+        target: /app/data
+        volume: {}
+networks:
+  default:
+    name: services_default
+volumes:
+  sss-data:
+    name: services_sss-data
+    driver: local

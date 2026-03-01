@@ -1,0 +1,1 @@
+time="2026-03-01T17:04:03+08:00" level=warning msg="/Users/dongowu/code/project/project_sonlana/solana-stablecoin-standard/services/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
