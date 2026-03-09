@@ -13,6 +13,8 @@ pub enum AppError {
     Solana(String),
     Database(String),
     Unauthorized(String),
+    RateLimited(String),
+    Forbidden(String),
 }
 
 impl std::fmt::Display for AppError {
@@ -24,6 +26,8 @@ impl std::fmt::Display for AppError {
             AppError::Solana(msg) => write!(f, "Solana error: {msg}"),
             AppError::Database(msg) => write!(f, "Database error: {msg}"),
             AppError::Unauthorized(msg) => write!(f, "Unauthorized: {msg}"),
+            AppError::RateLimited(msg) => write!(f, "Rate limited: {msg}"),
+            AppError::Forbidden(msg) => write!(f, "Forbidden: {msg}"),
         }
     }
 }
@@ -39,6 +43,8 @@ impl IntoResponse for AppError {
             AppError::Solana(msg) => (StatusCode::BAD_GATEWAY, msg.clone()),
             AppError::Database(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg.clone()),
             AppError::Unauthorized(msg) => (StatusCode::UNAUTHORIZED, msg.clone()),
+            AppError::RateLimited(msg) => (StatusCode::TOO_MANY_REQUESTS, msg.clone()),
+            AppError::Forbidden(msg) => (StatusCode::FORBIDDEN, msg.clone()),
         };
 
         tracing::error!(%status, %message, "request error");

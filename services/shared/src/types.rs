@@ -107,6 +107,8 @@ pub struct HealthResponse {
     pub service: String,
     pub version: String,
     pub uptime_seconds: u64,
+    pub db_connected: bool,
+    pub rpc_reachable: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

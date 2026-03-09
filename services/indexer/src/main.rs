@@ -32,6 +32,15 @@ async fn main() -> anyhow::Result<()> {
         .unwrap_or_else(|_| "11111111111111111111111111111111".to_string());
     let webhook_url = std::env::var("WEBHOOK_SERVICE_URL").ok();
 
+    tracing::info!(
+        database_url = %database_url,
+        rpc_url = %rpc_url,
+        ws_url = %ws_url,
+        program_id = %program_id,
+        webhook_url = ?webhook_url,
+        "indexer service config"
+    );
+
     let db = Database::new(&database_url).await?;
 
     let state = Arc::new(AppState {
@@ -44,8 +53,39 @@ async fn main() -> anyhow::Result<()> {
 
     tracing::info!("indexer service starting, subscribing to program logs");
 
-    // Run the WebSocket listener
-    listener::run(state).await?;
+    // Run the WebSocket listener with graceful shutdown
+    tokio::select! {
+        result = listener::run(state) => {
+            result?;
+        }
+        _ = shutdown_signal() => {}
+    }
 
     Ok(())
+}
+
+async fn shutdown_signal() {
+    let ctrl_c = async {
+        tokio::signal::ctrl_c()
+            .await
+            .expect("failed to install Ctrl+C handler");
+    };
+
+    #[cfg(unix)]
+    let terminate = async {
+        tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+            .expect("failed to install SIGTERM handler")
+            .recv()
+            .await;
+    };
+
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    tokio::select! {
+        _ = ctrl_c => {},
+        _ = terminate => {},
+    }
+
+    tracing::info!("shutting down gracefully");
 }

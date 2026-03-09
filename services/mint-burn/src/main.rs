@@ -1,8 +1,11 @@
-use axum::Router;
-use sss_shared::{Database, SolanaClient};
+use axum::{http::Method, middleware, Router};
+use sss_shared::{
+    auth_middleware, metrics_handler, rate_limit_middleware, request_id_middleware, AuthState,
+    Database, Metrics, RateLimiter, SolanaClient,
+};
 use std::sync::Arc;
 use std::time::Instant;
-use tower_http::cors::CorsLayer;
+use tower_http::cors::{AllowOrigin, CorsLayer};
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::EnvFilter;
 
@@ -13,6 +16,7 @@ pub struct AppState {
     pub db: Database,
     pub solana: SolanaClient,
     pub start_time: Instant,
+    pub metrics: Metrics,
 }
 
 #[tokio::main]
@@ -34,18 +38,37 @@ async fn main() -> anyhow::Result<()> {
         .unwrap_or_else(|_| "11111111111111111111111111111111".to_string());
     let port = std::env::var("MINT_BURN_PORT").unwrap_or_else(|_| "3001".to_string());
 
+    tracing::info!(
+        database_url = %database_url,
+        rpc_url = %rpc_url,
+        program_id = %program_id,
+        port = %port,
+        api_secret = "<redacted>",
+        "mint-burn service config"
+    );
+
     let db = Database::new(&database_url).await?;
     let solana = SolanaClient::new(&rpc_url, &keypair_path, &program_id)?;
+    let metrics = Metrics::new();
+    let auth_state = AuthState::from_env();
+    let rate_limiter = RateLimiter::from_env();
 
     let state = Arc::new(AppState {
         db,
         solana,
         start_time: Instant::now(),
+        metrics: metrics.clone(),
     });
+
+    let cors = build_cors_layer();
 
     let app = Router::new()
         .merge(routes::routes())
-        .layer(CorsLayer::permissive())
+        .route("/metrics", axum::routing::get(metrics_handler).with_state(metrics))
+        .layer(middleware::from_fn_with_state(rate_limiter, rate_limit_middleware))
+        .layer(middleware::from_fn_with_state(auth_state, auth_middleware))
+        .layer(middleware::from_fn(request_id_middleware))
+        .layer(cors)
         .layer(TraceLayer::new_for_http())
         .with_state(state);
 
@@ -53,7 +76,57 @@ async fn main() -> anyhow::Result<()> {
     tracing::info!("mint-burn service listening on {addr}");
 
     let listener = tokio::net::TcpListener::bind(&addr).await?;
-    axum::serve(listener, app).await?;
+    axum::serve(listener, app)
+        .with_graceful_shutdown(shutdown_signal())
+        .await?;
 
     Ok(())
+}
+
+fn build_cors_layer() -> CorsLayer {
+    let origins = std::env::var("ALLOWED_ORIGINS").unwrap_or_else(|_| "*".to_string());
+    let allow_origin = if origins == "*" {
+        AllowOrigin::any()
+    } else {
+        let list: Vec<_> = origins
+            .split(',')
+            .filter_map(|s| s.trim().parse().ok())
+            .collect();
+        AllowOrigin::list(list)
+    };
+
+    CorsLayer::new()
+        .allow_origin(allow_origin)
+        .allow_methods([Method::GET, Method::POST, Method::DELETE])
+        .allow_headers([
+            axum::http::header::CONTENT_TYPE,
+            axum::http::header::AUTHORIZATION,
+            "x-request-id".parse().expect("valid header name"),
+        ])
+}
+
+async fn shutdown_signal() {
+    let ctrl_c = async {
+        tokio::signal::ctrl_c()
+            .await
+            .expect("failed to install Ctrl+C handler");
+    };
+
+    #[cfg(unix)]
+    let terminate = async {
+        tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+            .expect("failed to install SIGTERM handler")
+            .recv()
+            .await;
+    };
+
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    tokio::select! {
+        _ = ctrl_c => {},
+        _ = terminate => {},
+    }
+
+    tracing::info!("shutting down gracefully");
 }

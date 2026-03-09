@@ -1,11 +1,11 @@
 use axum::{
-    extract::{Path, State},
+    extract::{Path, Query, State},
     http::StatusCode,
     Json,
 };
 use sss_shared::{
     error::AppError,
-    types::{HealthResponse, WebhookEntry, WebhookRegistration},
+    types::{HealthResponse, PaginationParams, WebhookEntry, WebhookRegistration},
 };
 use std::sync::Arc;
 
@@ -70,10 +70,16 @@ pub async fn register_webhook(
 
 pub async fn list_webhooks(
     State(state): State<Arc<AppState>>,
+    Query(params): Query<PaginationParams>,
 ) -> Result<Json<Vec<WebhookEntry>>, AppError> {
+    let limit = params.limit.unwrap_or(100).min(1000);
+    let offset = params.offset.unwrap_or(0);
+
     let rows: Vec<(i64, String, String, Option<String>, bool, String)> = sqlx::query_as(
-        "SELECT id, url, event_types, secret, active, created_at FROM webhooks ORDER BY created_at DESC",
+        "SELECT id, url, event_types, secret, active, created_at FROM webhooks ORDER BY created_at DESC LIMIT ? OFFSET ?",
     )
+    .bind(limit)
+    .bind(offset)
     .fetch_all(&state.db.pool)
     .await?;
 
@@ -190,10 +196,17 @@ pub async fn receive_event(
 }
 
 pub async fn health(State(state): State<Arc<AppState>>) -> Json<HealthResponse> {
+    let db_connected = sqlx::query("SELECT 1")
+        .execute(&state.db.pool)
+        .await
+        .is_ok();
+
     Json(HealthResponse {
         status: "ok".to_string(),
         service: "webhook".to_string(),
         version: env!("CARGO_PKG_VERSION").to_string(),
         uptime_seconds: state.start_time.elapsed().as_secs(),
+        db_connected,
+        rpc_reachable: false,
     })
 }

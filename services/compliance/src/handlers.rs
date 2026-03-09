@@ -6,7 +6,7 @@ use axum::{
 };
 use sss_shared::{
     error::AppError,
-    types::{AuditEntry, AuditTrailQuery, BlacklistEntry, BlacklistRequest, HealthResponse},
+    types::{AuditEntry, AuditTrailQuery, BlacklistEntry, BlacklistRequest, HealthResponse, PaginationParams},
 };
 use std::sync::Arc;
 
@@ -107,10 +107,16 @@ pub async fn remove_from_blacklist(
 
 pub async fn get_blacklist(
     State(state): State<Arc<AppState>>,
+    Query(params): Query<PaginationParams>,
 ) -> Result<Json<Vec<BlacklistEntry>>, AppError> {
+    let limit = params.limit.unwrap_or(100).min(1000);
+    let offset = params.offset.unwrap_or(0);
+
     let rows: Vec<(i64, String, Option<String>, String, String)> = sqlx::query_as(
-        "SELECT id, address, reason, added_by, created_at FROM blacklist ORDER BY created_at DESC",
+        "SELECT id, address, reason, added_by, created_at FROM blacklist ORDER BY created_at DESC LIMIT ? OFFSET ?",
     )
+    .bind(limit)
+    .bind(offset)
     .fetch_all(&state.db.pool)
     .await?;
 
@@ -242,10 +248,19 @@ pub async fn get_audit_trail(
 }
 
 pub async fn health(State(state): State<Arc<AppState>>) -> Json<HealthResponse> {
+    let db_connected = sqlx::query("SELECT 1")
+        .execute(&state.db.pool)
+        .await
+        .is_ok();
+
+    let rpc_reachable = state.solana.get_latest_blockhash().is_ok();
+
     Json(HealthResponse {
         status: "ok".to_string(),
         service: "compliance".to_string(),
         version: env!("CARGO_PKG_VERSION").to_string(),
         uptime_seconds: state.start_time.elapsed().as_secs(),
+        db_connected,
+        rpc_reachable,
     })
 }

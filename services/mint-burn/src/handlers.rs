@@ -34,6 +34,19 @@ pub async fn mint(
         return Err(AppError::BadRequest("Amount must be greater than 0".into()));
     }
 
+    // Check if recipient is blacklisted
+    let blacklisted: Option<(i64,)> =
+        sqlx::query_as("SELECT id FROM blacklist WHERE address = ?")
+            .bind(&req.recipient)
+            .fetch_optional(&state.db.pool)
+            .await
+            .map_err(|e| AppError::Database(format!("Blacklist check failed: {e}")))?;
+    if blacklisted.is_some() {
+        return Err(AppError::BadRequest(
+            "Recipient address is blacklisted".into(),
+        ));
+    }
+
     let token_program = Pubkey::from_str(TOKEN_2022_PROGRAM_ID)
         .map_err(|e| AppError::Internal(format!("Invalid token program ID: {e}")))?;
 
@@ -136,6 +149,20 @@ pub async fn burn(
         state.solana.payer_pubkey()
     };
 
+    // Check if source address is blacklisted
+    let source_str = source.to_string();
+    let blacklisted: Option<(i64,)> =
+        sqlx::query_as("SELECT id FROM blacklist WHERE address = ?")
+            .bind(&source_str)
+            .fetch_optional(&state.db.pool)
+            .await
+            .map_err(|e| AppError::Database(format!("Blacklist check failed: {e}")))?;
+    if blacklisted.is_some() {
+        return Err(AppError::BadRequest(
+            "Source address is blacklisted".into(),
+        ));
+    }
+
     let source_ata = get_associated_token_address(&source, &mint, &token_program)?;
 
     // Build burn_tokens instruction
@@ -218,11 +245,20 @@ pub async fn get_supply(
 }
 
 pub async fn health(State(state): State<Arc<AppState>>) -> Json<HealthResponse> {
+    let db_connected = sqlx::query("SELECT 1")
+        .execute(&state.db.pool)
+        .await
+        .is_ok();
+
+    let rpc_reachable = state.solana.get_latest_blockhash().is_ok();
+
     Json(HealthResponse {
         status: "ok".to_string(),
         service: "mint-burn".to_string(),
         version: env!("CARGO_PKG_VERSION").to_string(),
         uptime_seconds: state.start_time.elapsed().as_secs(),
+        db_connected,
+        rpc_reachable,
     })
 }
 
