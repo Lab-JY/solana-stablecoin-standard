@@ -441,3 +441,57 @@ ExtraAccountMeta::new_with_seeds(
 | burners | Individual hot wallets |
 | blacklister | Warm wallet with automated sanctions feed |
 | seizer | Cold wallet or multisig (high-impact action) |
+
+## Backend Services Architecture
+
+Four Axum microservices provide REST API access to on-chain operations, event indexing, and webhook delivery.
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                      Client Request                           │
+└──────────────────────────┬───────────────────────────────────┘
+                           │
+                           ▼
+┌──────────────────────────────────────────────────────────────┐
+│  Middleware Stack (applied in order)                          │
+│                                                              │
+│  1. TraceLayer          — HTTP-level tracing spans           │
+│  2. CORS                — Origin validation (ALLOWED_ORIGINS)│
+│  3. Security Headers    — HSTS, X-Content-Type-Options,      │
+│                           X-Frame-Options, Cache-Control,    │
+│                           Referrer-Policy                    │
+│  4. Observability       — UUID request ID (X-Request-Id),    │
+│                           request count / error count /      │
+│                           duration metrics                   │
+│  5. Rate Limiting       — Token-bucket per client IP         │
+│                           (RATE_LIMIT_MAX / WINDOW_SECS)     │
+│  6. Authentication      — Bearer token (constant-time check),│
+│                           skips GET /health and GET /metrics │
+│  7. Handler             — Route-specific business logic      │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Inter-Service Communication
+
+The indexer watches on-chain events via Solana WebSocket (`WS_URL`) and forwards them to the webhook service over an authenticated HTTP POST. The webhook service is an internal dependency of the indexer (Docker Compose `depends_on` with health check).
+
+```
+┌──────────┐   WebSocket    ┌──────────┐   HTTP POST    ┌──────────┐
+│  Solana  │ ─────────────▶ │ Indexer  │ ─────────────▶ │ Webhook  │
+│  RPC     │   (events)     │          │  (authenticated)│ Service  │
+└──────────┘                └──────────┘                 └─────┬────┘
+                                                               │
+                                                               ▼
+                                                      ┌──────────────┐
+                                                      │ Registered   │
+                                                      │ Endpoints    │
+                                                      └──────────────┘
+```
+
+### Database
+
+All services share a single SQLite database (`DATABASE_URL`) with WAL mode and `busy_timeout` configured for concurrent reads. The shared volume (`sss-data`) is mounted into every container.
+
+### Webhook Delivery
+
+The webhook service runs a background worker that polls for pending deliveries on a configurable interval (`WEBHOOK_POLL_INTERVAL_SECS`, default 5s). Failed deliveries are retried with exponential backoff.

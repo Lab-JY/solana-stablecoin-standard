@@ -129,3 +129,73 @@ pub async fn rate_limit_middleware(
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn make_limiter(max_requests: u64, window_secs: u64) -> RateLimiter {
+        RateLimiter {
+            buckets: Arc::new(DashMap::new()),
+            max_requests,
+            window_secs,
+        }
+    }
+
+    #[test]
+    fn requests_within_limit_pass() {
+        let limiter = make_limiter(3, 60);
+        assert!(limiter.check("ip1").is_ok());
+        assert!(limiter.check("ip1").is_ok());
+        assert!(limiter.check("ip1").is_ok());
+    }
+
+    #[test]
+    fn requests_exceeding_limit_rejected() {
+        let limiter = make_limiter(2, 60);
+        assert!(limiter.check("ip1").is_ok());
+        assert!(limiter.check("ip1").is_ok());
+        // Third request should fail
+        assert!(limiter.check("ip1").is_err());
+    }
+
+    #[test]
+    fn different_ips_have_separate_buckets() {
+        let limiter = make_limiter(1, 60);
+        assert!(limiter.check("ip_a").is_ok());
+        assert!(limiter.check("ip_b").is_ok());
+        // ip_a is exhausted, ip_b is exhausted, but they are independent
+        assert!(limiter.check("ip_a").is_err());
+        assert!(limiter.check("ip_b").is_err());
+    }
+
+    #[test]
+    fn cleanup_expired_removes_old_entries() {
+        // Window of 0 seconds means entries expire immediately
+        let limiter = make_limiter(10, 0);
+        limiter.check("old_ip").ok();
+        assert_eq!(limiter.buckets.len(), 1);
+
+        // With window_secs=0, cutoff = now - 0*2 = now, so any entry with
+        // last_refill <= now should be removed.
+        // We need to wait a tiny bit so the entry is older than the cutoff.
+        std::thread::sleep(std::time::Duration::from_millis(5));
+        limiter.cleanup_expired();
+        assert_eq!(limiter.buckets.len(), 0);
+    }
+
+    #[test]
+    fn err_returns_retry_after_value() {
+        let limiter = make_limiter(1, 60);
+        limiter.check("ip1").ok();
+        let err = limiter.check("ip1").unwrap_err();
+        // retry_after should be <= window_secs
+        assert!(err <= 60);
+    }
+
+    #[test]
+    fn zero_limit_rejects_immediately() {
+        let limiter = make_limiter(0, 60);
+        assert!(limiter.check("ip1").is_err());
+    }
+}

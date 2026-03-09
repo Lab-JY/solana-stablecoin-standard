@@ -1,11 +1,11 @@
-use axum::{http::Method, middleware, Extension, Router};
+use axum::{middleware, Extension, Router};
 use sss_shared::{
-    auth_middleware, metrics_handler, rate_limit_middleware, observability_middleware,
-    security_headers_middleware, AuthState, Database, Metrics, RateLimiter,
+    auth_middleware, build_cors_layer, metrics_handler, rate_limit_middleware,
+    observability_middleware, security_headers_middleware, shutdown_signal, AuthState, Database,
+    Metrics, RateLimiter,
 };
 use std::sync::Arc;
 use std::time::Instant;
-use tower_http::cors::{AllowOrigin, CorsLayer};
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::EnvFilter;
 
@@ -98,52 +98,4 @@ async fn main() -> anyhow::Result<()> {
     let _ = shutdown_tx.send(true);
 
     Ok(())
-}
-
-fn build_cors_layer() -> CorsLayer {
-    let origins = std::env::var("ALLOWED_ORIGINS").unwrap_or_else(|_| "http://localhost:3000".to_string());
-    let allow_origin = if origins == "*" {
-        AllowOrigin::any()
-    } else {
-        let list: Vec<_> = origins
-            .split(',')
-            .filter_map(|s| s.trim().parse().ok())
-            .collect();
-        AllowOrigin::list(list)
-    };
-
-    CorsLayer::new()
-        .allow_origin(allow_origin)
-        .allow_methods([Method::GET, Method::POST, Method::DELETE])
-        .allow_headers([
-            axum::http::header::CONTENT_TYPE,
-            axum::http::header::AUTHORIZATION,
-            "x-request-id".parse().expect("valid header name"),
-        ])
-}
-
-async fn shutdown_signal() {
-    let ctrl_c = async {
-        tokio::signal::ctrl_c()
-            .await
-            .expect("failed to install Ctrl+C handler");
-    };
-
-    #[cfg(unix)]
-    let terminate = async {
-        tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
-            .expect("failed to install SIGTERM handler")
-            .recv()
-            .await;
-    };
-
-    #[cfg(not(unix))]
-    let terminate = std::future::pending::<()>();
-
-    tokio::select! {
-        _ = ctrl_c => {},
-        _ = terminate => {},
-    }
-
-    tracing::info!("shutting down gracefully");
 }

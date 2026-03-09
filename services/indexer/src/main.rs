@@ -1,4 +1,6 @@
-use sss_shared::Database;
+use axum::{routing::get, Json, Router};
+use serde::Serialize;
+use sss_shared::{shutdown_signal, Database};
 use std::sync::Arc;
 use tracing_subscriber::EnvFilter;
 
@@ -12,6 +14,19 @@ pub struct AppState {
     pub ws_url: String,
     pub webhook_url: Option<String>,
     pub http_client: reqwest::Client,
+}
+
+#[derive(Serialize)]
+struct HealthResponse {
+    status: String,
+    service: String,
+}
+
+async fn health_handler() -> Json<HealthResponse> {
+    Json(HealthResponse {
+        status: "ok".to_string(),
+        service: "indexer".to_string(),
+    })
 }
 
 #[tokio::main]
@@ -32,6 +47,8 @@ async fn main() -> anyhow::Result<()> {
     let program_id = std::env::var("PROGRAM_ID")
         .unwrap_or_else(|_| "11111111111111111111111111111111".to_string());
     let webhook_url = std::env::var("WEBHOOK_SERVICE_URL").ok();
+    let health_port =
+        std::env::var("INDEXER_HEALTH_PORT").unwrap_or_else(|_| "3003".to_string());
 
     tracing::info!(
         database_url = %database_url,
@@ -39,6 +56,7 @@ async fn main() -> anyhow::Result<()> {
         ws_url = %ws_url,
         program_id = %program_id,
         webhook_url = ?webhook_url,
+        health_port = %health_port,
         "indexer service config"
     );
 
@@ -57,41 +75,24 @@ async fn main() -> anyhow::Result<()> {
         http_client,
     });
 
+    // A-04: Health endpoint for indexer
+    let health_app = Router::new().route("/health", get(health_handler));
+    let health_addr = format!("0.0.0.0:{health_port}");
+    let health_listener = tokio::net::TcpListener::bind(&health_addr).await?;
+    tracing::info!("indexer health endpoint listening on {health_addr}");
+
     tracing::info!("indexer service starting, subscribing to program logs");
 
-    // Run the WebSocket listener with graceful shutdown
+    // Run the WebSocket listener, health server, and shutdown signal concurrently
     tokio::select! {
         result = listener::run(state) => {
+            result?;
+        }
+        result = axum::serve(health_listener, health_app) => {
             result?;
         }
         _ = shutdown_signal() => {}
     }
 
     Ok(())
-}
-
-async fn shutdown_signal() {
-    let ctrl_c = async {
-        tokio::signal::ctrl_c()
-            .await
-            .expect("failed to install Ctrl+C handler");
-    };
-
-    #[cfg(unix)]
-    let terminate = async {
-        tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
-            .expect("failed to install SIGTERM handler")
-            .recv()
-            .await;
-    };
-
-    #[cfg(not(unix))]
-    let terminate = std::future::pending::<()>();
-
-    tokio::select! {
-        _ = ctrl_c => {},
-        _ = terminate => {},
-    }
-
-    tracing::info!("shutting down gracefully");
 }

@@ -307,12 +307,13 @@ solana-stablecoin-standard/
 ├── sdk/core/                   # @stbr/sss-token TypeScript SDK
 ├── cli/                        # Rust CLI (sss-token)
 ├── services/                   # Rust backend services (Axum)
-│   ├── shared/                 # Shared library
+│   ├── shared/                 # Shared library (auth, rate limiting, metrics, middleware)
 │   ├── mint-burn/              # Mint/Burn lifecycle API
 │   ├── compliance/             # Compliance & audit trail API
 │   ├── indexer/                # On-chain event indexer
 │   ├── webhook/                # Webhook notifications
-│   └── docker-compose.yml
+│   ├── docker-compose.yml
+│   └── .env.example            # Environment variable template
 ├── tui/                        # Admin TUI (ratatui)
 ├── app/                        # Next.js frontend example
 ├── tests/                      # Integration tests

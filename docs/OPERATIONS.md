@@ -444,3 +444,59 @@ curl http://localhost:3004/health  # webhook
    ```bash
    sss-token status
    ```
+
+## Backend Services Configuration
+
+The backend services (mint-burn, compliance, indexer, webhook) are four Axum microservices configured via environment variables. All services share the same variable set; not every service uses every variable.
+
+### Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `API_SECRET_KEY` | Yes | None | Bearer token for API authentication (constant-time comparison) |
+| `DATABASE_URL` | No | `sqlite:./data/sss.db` | SQLite database path |
+| `RPC_URL` | No | `https://api.devnet.solana.com` | Solana RPC endpoint |
+| `WS_URL` | No | `wss://api.devnet.solana.com` | Solana WebSocket endpoint (indexer only) |
+| `KEYPAIR_PATH` | No | `~/.config/solana/id.json` | Payer keypair file path |
+| `PROGRAM_ID` | No | `11111111111111111111111111111111` | SSS Token program ID |
+| `RATE_LIMIT_MAX` | No | `100` | Maximum requests per window per IP |
+| `RATE_LIMIT_WINDOW_SECS` | No | `60` | Rate limit window in seconds |
+| `ALLOWED_ORIGINS` | No | `*` | CORS allowed origins (comma-separated) |
+| `WEBHOOK_POLL_INTERVAL_SECS` | No | `5` | Webhook delivery poll interval (webhook service only) |
+| `WEBHOOK_SERVICE_URL` | No | `http://webhook:3000` | URL for indexer to forward events (indexer only) |
+| `RUST_LOG` | No | `info` | Log level filter (e.g. `debug`, `info,tower_http=warn`) |
+
+### Docker Deployment
+
+The services are orchestrated with Docker Compose. All four services share a single SQLite volume.
+
+```bash
+cd services
+
+# Create .env from the example template
+cp .env.example .env
+# Edit .env and set API_SECRET_KEY (required)
+
+# Start all services
+docker compose up -d
+
+# View logs
+docker compose logs -f
+
+# Check health
+curl http://localhost:3001/health   # mint-burn
+curl http://localhost:3002/health   # compliance
+curl http://localhost:3004/health   # webhook
+
+# Stop all services
+docker compose down
+```
+
+Service port mapping:
+
+| Service | Container Port | Host Port |
+|---------|---------------|-----------|
+| mint-burn | 3000 | 3001 |
+| compliance | 3000 | 3002 |
+| indexer | (no exposed port) | -- |
+| webhook | 3000 | 3004 |

@@ -28,6 +28,11 @@ services:
       timeout: 3s
       start_period: 10s
       retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
     restart: unless-stopped
 
   compliance:
@@ -59,6 +64,11 @@ services:
       timeout: 3s
       start_period: 10s
       retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
     restart: unless-stopped
 
   indexer:
@@ -76,11 +86,17 @@ services:
       - WEBHOOK_SERVICE_URL=http://webhook:3000
       - API_SECRET_KEY=${API_SECRET_KEY:?API_SECRET_KEY must be set}
       - RUST_LOG=info
+      - INDEXER_HEALTH_PORT=3003
     volumes:
       - sss-data:/app/data
     depends_on:
       webhook:
         condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
     restart: unless-stopped
 
   webhook:
@@ -109,6 +125,11 @@ services:
       timeout: 3s
       start_period: 10s
       retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
     restart: unless-stopped
 
 volumes:

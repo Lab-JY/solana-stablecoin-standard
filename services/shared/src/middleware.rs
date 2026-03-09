@@ -83,3 +83,110 @@ pub async fn security_headers_middleware(req: Request, next: Next) -> Response {
 
     response
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::{body::Body, middleware, routing::get, Extension, Router};
+    use http::Request;
+    use tower::ServiceExt;
+
+    fn obs_app() -> Router {
+        let metrics = crate::metrics::Metrics::new();
+        Router::new()
+            .route("/ping", get(|| async { "pong" }))
+            .layer(middleware::from_fn(observability_middleware))
+            .layer(Extension(metrics))
+    }
+
+    fn sec_app() -> Router {
+        Router::new()
+            .route("/ping", get(|| async { "pong" }))
+            .layer(middleware::from_fn(security_headers_middleware))
+    }
+
+    // --- observability_middleware tests ---
+
+    #[tokio::test]
+    async fn response_contains_x_request_id_header() {
+        let resp = obs_app()
+            .oneshot(
+                Request::builder()
+                    .uri("/ping")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert!(resp.headers().contains_key("x-request-id"));
+    }
+
+    #[tokio::test]
+    async fn request_id_is_valid_uuid() {
+        let resp = obs_app()
+            .oneshot(
+                Request::builder()
+                    .uri("/ping")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        let id = resp.headers().get("x-request-id").unwrap().to_str().unwrap();
+        assert!(uuid::Uuid::parse_str(id).is_ok(), "not a valid UUID: {id}");
+    }
+
+    #[tokio::test]
+    async fn each_request_gets_unique_id() {
+        let app = obs_app();
+
+        let resp1 = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .uri("/ping")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        let resp2 = app
+            .oneshot(
+                Request::builder()
+                    .uri("/ping")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        let id1 = resp1.headers().get("x-request-id").unwrap().to_str().unwrap().to_owned();
+        let id2 = resp2.headers().get("x-request-id").unwrap().to_str().unwrap().to_owned();
+        assert_ne!(id1, id2);
+    }
+
+    // --- security_headers_middleware tests ---
+
+    #[tokio::test]
+    async fn security_headers_present() {
+        let resp = sec_app()
+            .oneshot(
+                Request::builder()
+                    .uri("/ping")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        let headers = resp.headers();
+        assert_eq!(
+            headers.get("strict-transport-security").unwrap(),
+            "max-age=63072000; includeSubDomains"
+        );
+        assert_eq!(headers.get("x-content-type-options").unwrap(), "nosniff");
+        assert_eq!(headers.get("x-frame-options").unwrap(), "DENY");
+        assert_eq!(headers.get("cache-control").unwrap(), "no-store");
+        assert_eq!(headers.get("referrer-policy").unwrap(), "no-referrer");
+    }
+}

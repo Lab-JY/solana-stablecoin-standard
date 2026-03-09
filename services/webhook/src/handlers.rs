@@ -159,6 +159,14 @@ pub async fn delete_webhook(
         return Err(AppError::NotFound(format!("Webhook {id} not found")));
     }
 
+    // P2-19: Audit log for webhook deletion
+    sqlx::query(
+        "INSERT INTO audit_log (action, resource_type, resource_id, details) VALUES ('delete', 'webhook', ?, 'webhook deleted')",
+    )
+    .bind(id)
+    .execute(&mut *tx)
+    .await?;
+
     tx.commit().await?;
 
     tracing::info!(webhook_id = id, "webhook deleted");

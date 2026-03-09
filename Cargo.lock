@@ -6945,6 +6945,7 @@ name = "sss-indexer"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "axum",
  "base64 0.22.1",
  "bs58",
  "dotenv",
@@ -6959,6 +6960,7 @@ dependencies = [
  "sss-shared",
  "tokio",
  "tokio-tungstenite 0.24.0",
+ "tower-http 0.5.2",
  "tracing",
  "tracing-subscriber",
 ]
@@ -7003,6 +7005,7 @@ dependencies = [
  "chrono",
  "dashmap 6.1.0",
  "http 1.4.0",
+ "http-body-util",
  "serde",
  "serde_json",
  "solana-client",
