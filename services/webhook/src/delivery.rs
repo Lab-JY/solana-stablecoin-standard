@@ -10,7 +10,11 @@ type HmacSha256 = Hmac<Sha256>;
 const MAX_RETRY_ATTEMPTS: i32 = 5;
 
 /// Background worker that polls for pending deliveries and sends them
-pub async fn run_delivery_worker(state: Arc<AppState>, poll_interval_secs: u64) {
+pub async fn run_delivery_worker(
+    state: Arc<AppState>,
+    poll_interval_secs: u64,
+    mut shutdown: tokio::sync::watch::Receiver<bool>,
+) {
     tracing::info!(poll_interval_secs, "starting webhook delivery worker");
 
     let client = reqwest::Client::builder()
@@ -19,10 +23,17 @@ pub async fn run_delivery_worker(state: Arc<AppState>, poll_interval_secs: u64) 
         .expect("failed to build HTTP client");
 
     loop {
-        if let Err(e) = process_pending_deliveries(&state, &client).await {
-            tracing::error!(error = %e, "delivery worker error");
+        tokio::select! {
+            _ = tokio::time::sleep(tokio::time::Duration::from_secs(poll_interval_secs)) => {
+                if let Err(e) = process_pending_deliveries(&state, &client).await {
+                    tracing::error!(error = %e, "delivery worker error");
+                }
+            }
+            _ = shutdown.changed() => {
+                tracing::info!("delivery worker shutting down");
+                break;
+            }
         }
-        tokio::time::sleep(tokio::time::Duration::from_secs(poll_interval_secs)).await;
     }
 }
 

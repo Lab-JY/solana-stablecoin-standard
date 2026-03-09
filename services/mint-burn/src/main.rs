@@ -1,6 +1,6 @@
-use axum::{http::Method, middleware, Router};
+use axum::{extract::DefaultBodyLimit, http::Method, middleware, Extension, Router};
 use sss_shared::{
-    auth_middleware, metrics_handler, rate_limit_middleware, request_id_middleware,
+    auth_middleware, metrics_handler, observability_middleware, rate_limit_middleware,
     security_headers_middleware, AuthState, Database, Metrics, RateLimiter, SolanaClient,
 };
 use std::sync::Arc;
@@ -72,10 +72,12 @@ async fn main() -> anyhow::Result<()> {
 
     let app = Router::new()
         .merge(routes::routes())
-        .route("/metrics", axum::routing::get(metrics_handler).with_state(metrics))
+        .route("/metrics", axum::routing::get(metrics_handler).with_state(metrics.clone()))
+        .layer(DefaultBodyLimit::max(65_536))
         .layer(middleware::from_fn_with_state(auth_state, auth_middleware))
         .layer(middleware::from_fn_with_state(rate_limiter, rate_limit_middleware))
-        .layer(middleware::from_fn(request_id_middleware))
+        .layer(middleware::from_fn(observability_middleware))
+        .layer(Extension(metrics))
         .layer(middleware::from_fn(security_headers_middleware))
         .layer(cors)
         .layer(TraceLayer::new_for_http())

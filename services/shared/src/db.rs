@@ -62,6 +62,16 @@ impl Database {
 
             CREATE INDEX IF NOT EXISTS idx_audit_action ON audit_log(action);
             CREATE INDEX IF NOT EXISTS idx_audit_actor ON audit_log(actor);
+
+            CREATE TRIGGER IF NOT EXISTS prevent_audit_update BEFORE UPDATE ON audit_log
+            BEGIN
+                SELECT RAISE(ABORT, 'Audit log records are immutable');
+            END;
+
+            CREATE TRIGGER IF NOT EXISTS prevent_audit_delete BEFORE DELETE ON audit_log
+            BEGIN
+                SELECT RAISE(ABORT, 'Audit log records are immutable');
+            END;
             "#,
         )
         .execute(&self.pool)

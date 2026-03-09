@@ -12,6 +12,17 @@ use std::sync::Arc;
 
 use crate::AppState;
 
+fn validate_datetime(s: &str) -> Result<(), AppError> {
+    if s.len() == 10 {
+        chrono::NaiveDate::parse_from_str(s, "%Y-%m-%d")
+            .map_err(|_| AppError::BadRequest("Invalid date format, use YYYY-MM-DD".into()))?;
+    } else {
+        chrono::NaiveDateTime::parse_from_str(s, "%Y-%m-%d %H:%M:%S")
+            .map_err(|_| AppError::BadRequest("Invalid datetime format, use YYYY-MM-DD HH:MM:SS".into()))?;
+    }
+    Ok(())
+}
+
 pub async fn add_to_blacklist(
     State(state): State<Arc<AppState>>,
     Json(req): Json<BlacklistRequest>,
@@ -109,8 +120,8 @@ pub async fn get_blacklist(
     State(state): State<Arc<AppState>>,
     Query(params): Query<PaginationParams>,
 ) -> Result<Json<Vec<BlacklistEntry>>, AppError> {
-    let limit = params.limit.unwrap_or(100).min(1000);
-    let offset = params.offset.unwrap_or(0);
+    let limit = params.limit.unwrap_or(100).min(1000) as i64;
+    let offset = params.offset.unwrap_or(0) as i64;
 
     let rows: Vec<(i64, String, Option<String>, String, String)> = sqlx::query_as(
         "SELECT id, address, reason, added_by, created_at FROM blacklist ORDER BY created_at DESC LIMIT ? OFFSET ?",
@@ -155,10 +166,12 @@ pub async fn get_audit_trail(
         bindings.push(actor.clone());
     }
     if let Some(ref from) = query.from {
+        validate_datetime(from)?;
         sql.push_str(" AND created_at >= ?");
         bindings.push(from.clone());
     }
     if let Some(ref to) = query.to {
+        validate_datetime(to)?;
         sql.push_str(" AND created_at <= ?");
         bindings.push(to.clone());
     }

@@ -2,19 +2,39 @@ use axum::{extract::Request, middleware::Next, response::Response};
 use std::time::Instant;
 use uuid::Uuid;
 
-/// Middleware that generates a UUID v4 request ID, attaches it as an
-/// `X-Request-Id` response header, and logs request method, path,
-/// status code, and duration.
-pub async fn request_id_middleware(req: Request, next: Next) -> Response {
+use crate::metrics::Metrics;
+
+/// Middleware that generates a UUID v4 request ID, inserts it into request
+/// extensions, attaches it as an `X-Request-Id` response header, records
+/// metrics (request count, error count, duration), and logs request details.
+///
+/// Requires `Metrics` to be installed as an axum extension (e.g. via
+/// `Extension(metrics)` layer).
+pub async fn observability_middleware(
+    axum::extract::Extension(metrics): axum::extract::Extension<Metrics>,
+    mut req: Request,
+    next: Next,
+) -> Response {
     let request_id = Uuid::new_v4().to_string();
     let method = req.method().clone();
     let path = req.uri().path().to_owned();
     let start = Instant::now();
 
+    // Q-15: propagate request ID into request extensions so downstream
+    // handlers/extractors can access it.
+    req.extensions_mut().insert(request_id.clone());
+
     let mut response = next.run(req).await;
 
     let duration = start.elapsed();
     let status = response.status();
+
+    // Q-12 / Q-13: record metrics
+    metrics.inc_requests();
+    if status.as_u16() >= 400 {
+        metrics.inc_errors();
+    }
+    metrics.observe_duration_ms(duration.as_millis() as u64);
 
     tracing::info!(
         request_id = %request_id,

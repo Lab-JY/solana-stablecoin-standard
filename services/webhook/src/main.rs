@@ -1,6 +1,6 @@
-use axum::{http::Method, middleware, Router};
+use axum::{http::Method, middleware, Extension, Router};
 use sss_shared::{
-    auth_middleware, metrics_handler, rate_limit_middleware, request_id_middleware,
+    auth_middleware, metrics_handler, rate_limit_middleware, observability_middleware,
     security_headers_middleware, AuthState, Database, Metrics, RateLimiter,
 };
 use std::sync::Arc;
@@ -63,20 +63,24 @@ async fn main() -> anyhow::Result<()> {
         metrics: metrics.clone(),
     });
 
+    // A-07: Create shutdown watch channel for delivery worker
+    let (shutdown_tx, shutdown_rx) = tokio::sync::watch::channel(false);
+
     // Spawn background delivery worker
     let delivery_state = state.clone();
     tokio::spawn(async move {
-        delivery::run_delivery_worker(delivery_state, poll_interval).await;
+        delivery::run_delivery_worker(delivery_state, poll_interval, shutdown_rx).await;
     });
 
     let cors = build_cors_layer();
 
     let app = Router::new()
         .merge(routes::routes())
-        .route("/metrics", axum::routing::get(metrics_handler).with_state(metrics))
+        .route("/metrics", axum::routing::get(metrics_handler).with_state(metrics.clone()))
         .layer(middleware::from_fn_with_state(auth_state, auth_middleware))
         .layer(middleware::from_fn_with_state(rate_limiter, rate_limit_middleware))
-        .layer(middleware::from_fn(request_id_middleware))
+        .layer(middleware::from_fn(observability_middleware))
+        .layer(Extension(metrics))
         .layer(middleware::from_fn(security_headers_middleware))
         .layer(cors)
         .layer(TraceLayer::new_for_http())
@@ -89,6 +93,9 @@ async fn main() -> anyhow::Result<()> {
     axum::serve(listener, app)
         .with_graceful_shutdown(shutdown_signal())
         .await?;
+
+    // Signal delivery worker to stop
+    let _ = shutdown_tx.send(true);
 
     Ok(())
 }
