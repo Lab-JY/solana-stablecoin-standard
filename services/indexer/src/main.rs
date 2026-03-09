@@ -11,6 +11,7 @@ pub struct AppState {
     pub rpc_url: String,
     pub ws_url: String,
     pub webhook_url: Option<String>,
+    pub http_client: reqwest::Client,
 }
 
 #[tokio::main]
@@ -43,12 +44,17 @@ async fn main() -> anyhow::Result<()> {
 
     let db = Database::new(&database_url).await?;
 
+    let http_client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(10))
+        .build()?;
+
     let state = Arc::new(AppState {
         db,
         program_id,
         rpc_url,
         ws_url,
         webhook_url,
+        http_client,
     });
 
     tracing::info!("indexer service starting, subscribing to program logs");

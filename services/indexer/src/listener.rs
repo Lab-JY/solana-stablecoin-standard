@@ -152,7 +152,7 @@ async fn handle_message(state: &Arc<AppState>, text: &str) -> Result<()> {
                 if r.rows_affected() > 0 {
                     // Forward to webhook service if configured
                     if let Some(ref webhook_url) = state.webhook_url {
-                        forward_to_webhook(webhook_url, signature, &event.event_type, &event.data)
+                        forward_to_webhook(&state.http_client, webhook_url, signature, &event.event_type, &event.data)
                             .await;
                     }
                 }
@@ -167,12 +167,13 @@ async fn handle_message(state: &Arc<AppState>, text: &str) -> Result<()> {
 }
 
 async fn forward_to_webhook(
+    client: &reqwest::Client,
     webhook_url: &str,
     signature: &str,
     event_type: &str,
     data: &serde_json::Value,
 ) {
-    let client = reqwest::Client::new();
+    let api_secret = std::env::var("API_SECRET_KEY").unwrap_or_default();
     let payload = json!({
         "signature": signature,
         "event_type": event_type,
@@ -181,6 +182,7 @@ async fn forward_to_webhook(
 
     match client
         .post(format!("{webhook_url}/events"))
+        .header("Authorization", format!("Bearer {api_secret}"))
         .json(&payload)
         .timeout(std::time::Duration::from_secs(5))
         .send()

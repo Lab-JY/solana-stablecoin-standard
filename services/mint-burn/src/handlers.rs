@@ -34,6 +34,13 @@ pub async fn mint(
         return Err(AppError::BadRequest("Amount must be greater than 0".into()));
     }
 
+    const MAX_MINT_PER_REQUEST: u64 = 1_000_000_000_000; // 1M tokens with 6 decimals
+    if req.amount > MAX_MINT_PER_REQUEST {
+        return Err(AppError::BadRequest(
+            format!("Amount exceeds maximum of {MAX_MINT_PER_REQUEST}"),
+        ));
+    }
+
     // Check if recipient is blacklisted
     let blacklisted: Option<(i64,)> =
         sqlx::query_as("SELECT id FROM blacklist WHERE address = ?")
@@ -129,6 +136,13 @@ pub async fn burn(
 
     if req.amount == 0 {
         return Err(AppError::BadRequest("Amount must be greater than 0".into()));
+    }
+
+    const MAX_MINT_PER_REQUEST: u64 = 1_000_000_000_000; // 1M tokens with 6 decimals
+    if req.amount > MAX_MINT_PER_REQUEST {
+        return Err(AppError::BadRequest(
+            format!("Amount exceeds maximum of {MAX_MINT_PER_REQUEST}"),
+        ));
     }
 
     let token_program = Pubkey::from_str(TOKEN_2022_PROGRAM_ID)
