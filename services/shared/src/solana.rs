@@ -9,6 +9,7 @@ use solana_sdk::{
 };
 use std::str::FromStr;
 use std::sync::Arc;
+use zeroize::Zeroize;
 
 #[derive(Clone)]
 pub struct SolanaClient {
@@ -22,11 +23,13 @@ impl SolanaClient {
         let rpc =
             RpcClient::new_with_commitment(rpc_url.to_string(), CommitmentConfig::confirmed());
 
-        let keypair_bytes = std::fs::read(keypair_path).context("Failed to read keypair file")?;
-        let keypair_data: Vec<u8> =
+        let mut keypair_bytes = std::fs::read(keypair_path).context("Failed to read keypair file")?;
+        let mut keypair_data: Vec<u8> =
             serde_json::from_slice(&keypair_bytes).context("Failed to parse keypair JSON")?;
         let payer =
             Keypair::from_bytes(&keypair_data).context("Failed to create keypair from bytes")?;
+        keypair_bytes.zeroize();
+        keypair_data.zeroize();
 
         let program_id = Pubkey::from_str(program_id).context("Failed to parse program ID")?;
 

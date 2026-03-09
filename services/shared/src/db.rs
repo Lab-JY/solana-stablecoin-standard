@@ -12,7 +12,8 @@ impl Database {
     pub async fn new(database_url: &str) -> Result<Self> {
         let options = SqliteConnectOptions::from_str(database_url)?
             .create_if_missing(true)
-            .journal_mode(sqlx::sqlite::SqliteJournalMode::Wal);
+            .journal_mode(sqlx::sqlite::SqliteJournalMode::Wal)
+            .busy_timeout(std::time::Duration::from_secs(5));
 
         let pool = SqlitePoolOptions::new()
             .max_connections(5)
@@ -99,6 +100,8 @@ impl Database {
 
             CREATE INDEX IF NOT EXISTS idx_deliveries_status ON webhook_deliveries(status);
             CREATE INDEX IF NOT EXISTS idx_deliveries_next_retry ON webhook_deliveries(next_retry_at);
+            CREATE INDEX IF NOT EXISTS idx_deliveries_pending_poll
+                ON webhook_deliveries(status, next_retry_at, attempts, created_at);
             "#,
         )
         .execute(&self.pool)

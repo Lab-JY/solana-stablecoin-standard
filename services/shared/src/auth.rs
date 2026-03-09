@@ -7,6 +7,7 @@ use axum::{
 };
 use serde_json::json;
 use std::sync::Arc;
+use subtle::ConstantTimeEq;
 
 #[derive(Clone)]
 pub struct AuthState {
@@ -16,7 +17,7 @@ pub struct AuthState {
 impl AuthState {
     pub fn from_env() -> Self {
         let secret =
-            std::env::var("API_SECRET_KEY").unwrap_or_else(|_| "changeme".to_string());
+            std::env::var("API_SECRET_KEY").expect("FATAL: API_SECRET_KEY must be set");
         Self {
             api_secret: Arc::new(secret),
         }
@@ -48,7 +49,8 @@ pub async fn auth_middleware(
     match auth_header {
         Some(value) if value.starts_with("Bearer ") => {
             let token = &value[7..];
-            if token == state.api_secret.as_str() {
+            let is_valid: bool = token.as_bytes().ct_eq(state.api_secret.as_bytes()).into();
+            if is_valid {
                 next.run(req).await
             } else {
                 unauthorized("Invalid bearer token")

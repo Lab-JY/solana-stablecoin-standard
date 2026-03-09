@@ -32,3 +32,34 @@ pub async fn request_id_middleware(req: Request, next: Next) -> Response {
 
     response
 }
+
+/// Middleware that adds security headers to every response.
+pub async fn security_headers_middleware(req: Request, next: Next) -> Response {
+    let mut response = next.run(req).await;
+
+    let headers = response.headers_mut();
+    headers.insert(
+        "strict-transport-security",
+        "max-age=63072000; includeSubDomains"
+            .parse()
+            .expect("valid header value"),
+    );
+    headers.insert(
+        "x-content-type-options",
+        "nosniff".parse().expect("valid header value"),
+    );
+    headers.insert(
+        "x-frame-options",
+        "DENY".parse().expect("valid header value"),
+    );
+    headers.insert(
+        "cache-control",
+        "no-store".parse().expect("valid header value"),
+    );
+    headers.insert(
+        "referrer-policy",
+        "no-referrer".parse().expect("valid header value"),
+    );
+
+    response
+}

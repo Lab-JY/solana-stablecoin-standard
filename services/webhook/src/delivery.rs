@@ -32,22 +32,28 @@ async fn process_pending_deliveries(
 ) -> anyhow::Result<()> {
     let now = Utc::now().to_rfc3339();
 
-    // Fetch deliveries that are pending and ready for retry
-    let deliveries: Vec<(i64, i64, i64, i32)> = sqlx::query_as(
-        r#"
-        SELECT d.id, d.webhook_id, d.event_id, d.attempts
-        FROM webhook_deliveries d
-        WHERE d.status = 'pending'
-          AND (d.next_retry_at IS NULL OR d.next_retry_at <= ?)
-          AND d.attempts < ?
-        ORDER BY d.created_at ASC
-        LIMIT 50
-        "#,
-    )
-    .bind(&now)
-    .bind(MAX_RETRY_ATTEMPTS)
-    .fetch_all(&state.db.pool)
-    .await?;
+    // Fetch deliveries with webhook and event data in a single JOIN query
+    let deliveries: Vec<(i64, i64, i64, i32, String, Option<String>, String, String)> =
+        sqlx::query_as(
+            r#"
+            SELECT d.id, d.webhook_id, d.event_id, d.attempts,
+                   w.url, w.secret,
+                   e.event_type, e.data
+            FROM webhook_deliveries d
+            JOIN webhooks w ON w.id = d.webhook_id
+            JOIN events e ON e.id = d.event_id
+            WHERE d.status = 'pending'
+              AND (d.next_retry_at IS NULL OR d.next_retry_at <= ?)
+              AND d.attempts < ?
+              AND w.active = TRUE
+            ORDER BY d.created_at ASC
+            LIMIT 50
+            "#,
+        )
+        .bind(&now)
+        .bind(MAX_RETRY_ATTEMPTS)
+        .fetch_all(&state.db.pool)
+        .await?;
 
     if deliveries.is_empty() {
         return Ok(());
@@ -55,38 +61,9 @@ async fn process_pending_deliveries(
 
     tracing::debug!(count = deliveries.len(), "processing pending deliveries");
 
-    for (delivery_id, webhook_id, event_id, attempts) in deliveries {
-        // Fetch webhook details
-        let webhook: Option<(String, Option<String>)> =
-            sqlx::query_as("SELECT url, secret FROM webhooks WHERE id = ? AND active = TRUE")
-                .bind(webhook_id)
-                .fetch_optional(&state.db.pool)
-                .await?;
-
-        let Some((url, secret)) = webhook else {
-            // Webhook was deleted or deactivated
-            sqlx::query("UPDATE webhook_deliveries SET status = 'cancelled' WHERE id = ?")
-                .bind(delivery_id)
-                .execute(&state.db.pool)
-                .await?;
-            continue;
-        };
-
-        // Fetch event data
-        let event: Option<(String, String)> =
-            sqlx::query_as("SELECT event_type, data FROM events WHERE id = ?")
-                .bind(event_id)
-                .fetch_optional(&state.db.pool)
-                .await?;
-
-        let Some((event_type, data_str)) = event else {
-            sqlx::query("UPDATE webhook_deliveries SET status = 'cancelled' WHERE id = ?")
-                .bind(delivery_id)
-                .execute(&state.db.pool)
-                .await?;
-            continue;
-        };
-
+    for (delivery_id, webhook_id, event_id, attempts, url, secret, event_type, data_str) in
+        deliveries
+    {
         let data: serde_json::Value = serde_json::from_str(&data_str).unwrap_or_default();
 
         let payload = WebhookPayload {

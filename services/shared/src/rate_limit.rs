@@ -48,6 +48,21 @@ impl RateLimiter {
         self.buckets.retain(|_, bucket| bucket.last_refill > cutoff);
     }
 
+    /// Spawn a background task that runs `cleanup_expired()` every 120 seconds.
+    ///
+    /// Services should call this once during startup to prevent unbounded
+    /// memory growth from stale rate-limit buckets.
+    pub fn spawn_cleanup_task(&self) {
+        let limiter = self.clone();
+        tokio::spawn(async move {
+            let mut interval = tokio::time::interval(std::time::Duration::from_secs(120));
+            loop {
+                interval.tick().await;
+                limiter.cleanup_expired();
+            }
+        });
+    }
+
     fn check(&self, key: &str) -> Result<(), u64> {
         let now = Instant::now();
         let window = std::time::Duration::from_secs(self.window_secs);

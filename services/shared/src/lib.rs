@@ -11,6 +11,6 @@ pub use auth::{auth_middleware, AuthState};
 pub use db::Database;
 pub use error::AppError;
 pub use metrics::{metrics_handler, Metrics};
-pub use middleware::request_id_middleware;
+pub use middleware::{request_id_middleware, security_headers_middleware};
 pub use rate_limit::{rate_limit_middleware, RateLimiter};
 pub use solana::SolanaClient;

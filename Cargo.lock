@@ -7007,12 +7007,14 @@ dependencies = [
  "solana-client",
  "solana-sdk",
  "sqlx",
+ "subtle",
  "tokio",
  "tower 0.4.13",
  "tower-http 0.5.2",
  "tracing",
  "tracing-subscriber",
  "uuid",
+ "zeroize",
 ]
 
 [[package]]

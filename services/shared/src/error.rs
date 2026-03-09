@@ -36,21 +36,21 @@ impl std::error::Error for AppError {}
 
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
-        let (status, message) = match &self {
-            AppError::BadRequest(msg) => (StatusCode::BAD_REQUEST, msg.clone()),
-            AppError::NotFound(msg) => (StatusCode::NOT_FOUND, msg.clone()),
-            AppError::Internal(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg.clone()),
-            AppError::Solana(msg) => (StatusCode::BAD_GATEWAY, msg.clone()),
-            AppError::Database(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg.clone()),
-            AppError::Unauthorized(msg) => (StatusCode::UNAUTHORIZED, msg.clone()),
-            AppError::RateLimited(msg) => (StatusCode::TOO_MANY_REQUESTS, msg.clone()),
-            AppError::Forbidden(msg) => (StatusCode::FORBIDDEN, msg.clone()),
+        let (status, internal_msg, client_msg) = match &self {
+            AppError::BadRequest(msg) => (StatusCode::BAD_REQUEST, msg.clone(), msg.clone()),
+            AppError::NotFound(msg) => (StatusCode::NOT_FOUND, msg.clone(), msg.clone()),
+            AppError::Internal(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg.clone(), "Internal server error".to_string()),
+            AppError::Solana(msg) => (StatusCode::BAD_GATEWAY, msg.clone(), "Upstream service error".to_string()),
+            AppError::Database(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg.clone(), "Database error".to_string()),
+            AppError::Unauthorized(msg) => (StatusCode::UNAUTHORIZED, msg.clone(), msg.clone()),
+            AppError::RateLimited(msg) => (StatusCode::TOO_MANY_REQUESTS, msg.clone(), msg.clone()),
+            AppError::Forbidden(msg) => (StatusCode::FORBIDDEN, msg.clone(), msg.clone()),
         };
 
-        tracing::error!(%status, %message, "request error");
+        tracing::error!(%status, message = %internal_msg, "request error");
 
         let body = json!({
-            "error": message,
+            "error": client_msg,
             "status": status.as_u16(),
         });
 

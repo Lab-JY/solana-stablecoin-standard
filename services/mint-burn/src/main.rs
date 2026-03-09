@@ -1,7 +1,7 @@
 use axum::{http::Method, middleware, Router};
 use sss_shared::{
-    auth_middleware, metrics_handler, rate_limit_middleware, request_id_middleware, AuthState,
-    Database, Metrics, RateLimiter, SolanaClient,
+    auth_middleware, metrics_handler, rate_limit_middleware, request_id_middleware,
+    security_headers_middleware, AuthState, Database, Metrics, RateLimiter, SolanaClient,
 };
 use std::sync::Arc;
 use std::time::Instant;
@@ -52,6 +52,14 @@ async fn main() -> anyhow::Result<()> {
     let metrics = Metrics::new();
     let auth_state = AuthState::from_env();
     let rate_limiter = RateLimiter::from_env();
+
+    let cleanup_limiter = rate_limiter.clone();
+    tokio::spawn(async move {
+        loop {
+            tokio::time::sleep(std::time::Duration::from_secs(120)).await;
+            cleanup_limiter.cleanup_expired();
+        }
+    });
 
     let state = Arc::new(AppState {
         db,
