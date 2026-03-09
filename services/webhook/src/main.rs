@@ -1,7 +1,7 @@
 use axum::{http::Method, middleware, Router};
 use sss_shared::{
-    auth_middleware, metrics_handler, rate_limit_middleware, request_id_middleware, AuthState,
-    Database, Metrics, RateLimiter,
+    auth_middleware, metrics_handler, rate_limit_middleware, request_id_middleware,
+    security_headers_middleware, AuthState, Database, Metrics, RateLimiter,
 };
 use std::sync::Arc;
 use std::time::Instant;
@@ -49,6 +49,14 @@ async fn main() -> anyhow::Result<()> {
     let auth_state = AuthState::from_env();
     let rate_limiter = RateLimiter::from_env();
 
+    let cleanup_limiter = rate_limiter.clone();
+    tokio::spawn(async move {
+        loop {
+            tokio::time::sleep(std::time::Duration::from_secs(120)).await;
+            cleanup_limiter.cleanup_expired();
+        }
+    });
+
     let state = Arc::new(AppState {
         db,
         start_time: Instant::now(),
@@ -66,9 +74,10 @@ async fn main() -> anyhow::Result<()> {
     let app = Router::new()
         .merge(routes::routes())
         .route("/metrics", axum::routing::get(metrics_handler).with_state(metrics))
-        .layer(middleware::from_fn_with_state(rate_limiter, rate_limit_middleware))
         .layer(middleware::from_fn_with_state(auth_state, auth_middleware))
+        .layer(middleware::from_fn_with_state(rate_limiter, rate_limit_middleware))
         .layer(middleware::from_fn(request_id_middleware))
+        .layer(middleware::from_fn(security_headers_middleware))
         .layer(cors)
         .layer(TraceLayer::new_for_http())
         .with_state(state);
@@ -85,7 +94,7 @@ async fn main() -> anyhow::Result<()> {
 }
 
 fn build_cors_layer() -> CorsLayer {
-    let origins = std::env::var("ALLOWED_ORIGINS").unwrap_or_else(|_| "*".to_string());
+    let origins = std::env::var("ALLOWED_ORIGINS").unwrap_or_else(|_| "http://localhost:3000".to_string());
     let allow_origin = if origins == "*" {
         AllowOrigin::any()
     } else {
