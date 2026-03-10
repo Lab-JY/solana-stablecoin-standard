@@ -10,7 +10,13 @@ const SSS_TOKEN_PROGRAM_ID: Pubkey = pubkey!("AhZamuppxULmpM9QGXcZJ9ZR3fvQbDd4gP
 
 /// The discriminator for the BlacklistEntry account from sss-token program.
 /// This is the first 8 bytes of sha256("account:BlacklistEntry").
-const BLACKLIST_ENTRY_DISCRIMINATOR: [u8; 8] = [0x2f, 0xe5, 0x97, 0x4c, 0x8c, 0x9d, 0xe0, 0x25];
+/// Computed at init time to stay in sync with Anchor's derivation.
+fn blacklist_entry_discriminator() -> [u8; 8] {
+    let hash = anchor_lang::solana_program::hash::hash(b"account:BlacklistEntry");
+    let mut disc = [0u8; 8];
+    disc.copy_from_slice(&hash.to_bytes()[..8]);
+    disc
+}
 
 #[derive(Accounts)]
 pub struct TransferHook<'info> {
@@ -93,7 +99,7 @@ fn is_blacklisted(account: &UncheckedAccount) -> Result<bool> {
     }
 
     // Check if the discriminator matches BlacklistEntry
-    if data[0..8] == BLACKLIST_ENTRY_DISCRIMINATOR {
+    if data[0..8] == blacklist_entry_discriminator() {
         return Ok(true);
     }
 

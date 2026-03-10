@@ -40,4 +40,8 @@ pub enum StablecoinError {
     BurnerAlreadyExists,
     #[msg("Burner not found")]
     BurnerNotFound,
+    #[msg("No pending authority transfer")]
+    NoPendingAuthority,
+    #[msg("Caller is not the pending authority")]
+    NotPendingAuthority,
 }

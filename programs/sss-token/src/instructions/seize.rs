@@ -48,6 +48,8 @@ pub struct Seize<'info> {
 pub fn handler<'info>(ctx: Context<'_, '_, '_, 'info, Seize<'info>>, amount: u64) -> Result<()> {
     let config = &ctx.accounts.stablecoin_config;
 
+    require!(!config.paused, StablecoinError::Paused);
+
     // Feature gate: compliance must be enabled (permanent delegate required)
     require!(
         config.is_compliance_enabled(),

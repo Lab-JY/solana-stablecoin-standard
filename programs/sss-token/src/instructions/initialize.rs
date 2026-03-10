@@ -206,8 +206,9 @@ pub fn handler(ctx: Context<Initialize>, params: InitializeParams) -> Result<()>
     config.enable_transfer_hook = params.enable_transfer_hook;
     config.default_account_frozen = params.default_account_frozen;
     config.transfer_hook_program = ctx.accounts.transfer_hook_program.as_ref().map(|p| p.key());
+    config.pending_authority = None;
     config.bump = ctx.bumps.stablecoin_config;
-    config._reserved = [0u8; 64];
+    config._reserved = [0u8; 31];
 
     // 8. Set role config state — authority gets all roles initially
     let roles = &mut ctx.accounts.role_config;

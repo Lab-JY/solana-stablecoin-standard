@@ -37,6 +37,9 @@ pub struct FreezeTokenAccount<'info> {
 }
 
 pub fn handler(ctx: Context<FreezeTokenAccount>) -> Result<()> {
+    let config = &ctx.accounts.stablecoin_config;
+    require!(!config.paused, StablecoinError::Paused);
+
     let authority_key = ctx.accounts.authority.key();
     let role_config = &ctx.accounts.role_config;
 

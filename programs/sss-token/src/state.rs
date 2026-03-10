@@ -29,10 +29,12 @@ pub struct StablecoinConfig {
     pub default_account_frozen: bool,
     /// SSS-2: transfer hook program ID
     pub transfer_hook_program: Option<Pubkey>,
+    /// Pending authority for two-step transfer (uses reserved space)
+    pub pending_authority: Option<Pubkey>,
     /// PDA bump
     pub bump: u8,
     /// Reserved for future use
-    pub _reserved: [u8; 64],
+    pub _reserved: [u8; 31],
 }
 
 impl StablecoinConfig {
@@ -50,8 +52,9 @@ impl StablecoinConfig {
         + 1   // enable_transfer_hook
         + 1   // default_account_frozen
         + (1 + 32) // transfer_hook_program (Option<Pubkey>)
+        + (1 + 32) // pending_authority (Option<Pubkey>)
         + 1   // bump
-        + 64; // _reserved
+        + 31; // _reserved
 
     pub fn is_compliance_enabled(&self) -> bool {
         self.enable_permanent_delegate && self.enable_transfer_hook

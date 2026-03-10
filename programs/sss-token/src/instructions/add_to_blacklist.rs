@@ -38,6 +38,8 @@ pub struct AddToBlacklist<'info> {
 pub fn handler(ctx: Context<AddToBlacklist>, address: Pubkey, reason: String) -> Result<()> {
     let config = &ctx.accounts.stablecoin_config;
 
+    require!(!config.paused, StablecoinError::Paused);
+
     // Feature gate: compliance must be enabled
     require!(
         config.is_compliance_enabled(),

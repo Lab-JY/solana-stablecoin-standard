@@ -57,6 +57,10 @@ pub mod sss_token {
         instructions::transfer_authority::handler(ctx, new_authority)
     }
 
+    pub fn accept_authority(ctx: Context<AcceptAuthority>) -> Result<()> {
+        instructions::transfer_authority::accept_handler(ctx)
+    }
+
     pub fn add_to_blacklist(
         ctx: Context<AddToBlacklist>,
         address: Pubkey,

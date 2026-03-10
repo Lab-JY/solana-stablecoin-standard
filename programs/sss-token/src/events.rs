@@ -75,6 +75,20 @@ pub struct AuthorityTransferred {
 }
 
 #[event]
+pub struct AuthorityTransferProposed {
+    pub mint: Pubkey,
+    pub current_authority: Pubkey,
+    pub pending_authority: Pubkey,
+}
+
+#[event]
+pub struct AuthorityTransferAccepted {
+    pub mint: Pubkey,
+    pub old_authority: Pubkey,
+    pub new_authority: Pubkey,
+}
+
+#[event]
 pub struct AddressBlacklisted {
     pub mint: Pubkey,
     pub address: Pubkey,
